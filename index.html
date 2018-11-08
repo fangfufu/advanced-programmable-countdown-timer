@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'/>
+<title>Timer</title>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.menu-items {
+    margin-left: 10px;
+}
+
+.info-display-item {
+    font-size: 2em;
+    text-align: center;
+    justify-content: center;
+}
+
+.footer {
+    display: flex;
+    justify-content: space-between;
+}
+
+.footer-item {
+    /* border: 1px solid #fff; */
+    background-color: #D6E9FE;
+    padding: 10px;
+    flex: 1;
+}
+
+#menu {
+    color: #fff;
+    background-color: #5995DA;  /* Blue */
+    padding: 5px 10px;
+    display: flex;
+    justify-content: space-between;
+}
+
+#links {
+    display: flex;
+    justify-content: flex-end;
+}
+
+
+#title {
+    color: #5995DA;
+    background-color: #D6E9FE;
+    display: flex;
+    font-size: 2em;
+    color: black;
+    justify-content: center;
+    text-align: center;
+}
+
+#content {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+}
+
+#info-display-container {
+    display: flex;
+    justify-content: center;
+}
+
+#info-display {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    flex-direction: column;
+    text-align: center;
+    padding: 10px;
+    width: 550px;
+    border: 1px solid #000000;
+    margin: 5px;
+}
+
+#control-panel-container {
+    display: flex;
+    justify-content: center;
+}
+
+#control-panel {
+    width: 550px;
+    border: 1px solid #000000;
+    margin: 5px;
+}
+
+#input-area {
+    margin: 5px;
+}
+
+.control-button {
+    margin: 0px 5px 10px 5px;
+}
+
+#error-msg {
+    color: #FF0000;
+    text-align: center;
+}
+</style>
+
+<script>
+/* The refresh rate for the timers in milliseconds*/
+const REFRESH_RATE = 1000;
+
+/* Current time at the top left corner */
+var WALL_CLOCK;
+
+/* Triggers the callback function to update the countdown */
+var COUNTDOWN_CLOCK;
+
+/* Check if we have already parsed the interval set */
+var INT_SET_PARSED = false;
+
+/* The parsed interval set */
+var INT_SET;
+
+/* The current interva l - which interval are we on?  */
+var SEG_NUM;
+
+/* The remaining time for this interval */
+var SEG_REM_TIME;
+
+/* Whether the timer is highlighted */
+var HIGHLIGHT = false;
+
+/* The time after which the timer is highlighted */
+var HIGHLIGHT_START = 5;
+
+function wall_clock_callback() {
+    var t = new Date();
+    document.getElementById('current-time').innerHTML =
+    'Current Time: ' + t.toLocaleTimeString('en-GB');
+    WALL_CLOCK = setTimeout(wall_clock_callback, REFRESH_RATE);
+}
+
+function write_str(id, str) {
+    document.getElementById(id).textContent = str;
+}
+
+function set_bgcolor(id, color) {
+    document.getElementById(id).style.backgroundColor = color;
+}
+
+function start_timer() {
+    /* Parse the input text box, if we haven't. */
+    if (!INT_SET_PARSED) {
+        /* Clear error messages */
+        write_str('error-msg', '');
+        /* Parse the input */
+        let input_area = document.getElementById('input-area');
+        INT_SET = parse_input(input_area.value.trim());
+        INT_SET_PARSED = true;
+        SEG_NUM = 0;
+        SEG_REM_TIME = INT_SET[0][0];
+        /* Disable the input */
+        input_area.disabled = true;
+    }
+    /* Trigger the timer */
+    countdown_callback();
+}
+
+function countdown_callback() {
+    if (!INT_SET_PARSED) {
+        write_str('error-msg',
+        'countdown_callback(): INT_SET_PARSED == false');
+        return;
+    }
+
+    /* If we have reached the end of this segment */
+    if (SEG_REM_TIME < 0) {
+        SEG_NUM++;
+        /* If this segment is longer than the array length */
+        if (SEG_NUM >= INT_SET.length) {
+            reset_timer();
+            update_display(0, 'The end, well done! 😊');
+            return;
+        }
+        SEG_REM_TIME = INT_SET[SEG_NUM][0];
+    }
+    /* update display, decrease the counter */
+    update_display(SEG_REM_TIME, INT_SET[SEG_NUM][1]);
+    SEG_REM_TIME--;
+    COUNTDOWN_CLOCK = setTimeout(countdown_callback, REFRESH_RATE);
+}
+
+function update_display(time, text) {
+    write_str('seg-text', text);
+    var min = Math.floor(time / 60);
+    var sec = time % 60;
+    var min_str = min.toString();
+    var sec_str = sec.toString();
+    if (min < 10) {
+        min_str = '0' + min_str;
+    }
+    if (sec < 10) {
+        sec_str = '0' + sec_str;
+    }
+    if (min == 0 && sec < HIGHLIGHT_START) {
+        if (!HIGHLIGHT) {
+            set_highlight(true);
+        } else {
+            set_highlight(false);
+        }
+    } else {
+        set_highlight(false);
+    }
+    var time_str = min_str + ':' + sec_str;
+    write_str('seg-time', time_str);
+}
+
+function clear_display() {
+    write_str('seg-text', '');
+    write_str('seg-time', '');
+}
+
+function set_highlight(s) {
+    if (s) {
+        set_bgcolor('seg-time', 'yellow');
+        HIGHLIGHT = true;
+    } else {
+        set_bgcolor('seg-time', 'white');
+        HIGHLIGHT = false;
+    }
+}
+
+function pause_timer() {
+    clearTimeout(COUNTDOWN_CLOCK);
+    write_str('seg-next', 'Paused');
+}
+
+function reset_timer() {
+    var input_area = document.getElementById('input-area');
+    input_area.disabled = false;
+    clearTimeout(COUNTDOWN_CLOCK);
+    INT_SET_PARSED = false;
+    clear_display();
+}
+
+/* Tokenise the input text */
+function parse_input(str) {
+    /* Split the input string to lines */
+    var arr = str.split(/\r|\r\n|\n/);
+    /* Split each line into fields */
+    for (let i = 0; i < arr.length; i++) {
+        arr[i] = arr[i].split(';');
+        /* Split the first field into times */
+        let time_arr = arr[i][0].split(':');
+        /* Explicitly convert string into int */
+        time_arr[0] = parseInt(time_arr[0]);
+        time_arr[1] = parseInt(time_arr[1]);
+        /* Check if the conversion had been valid */
+        if (isNaN(time_arr[0]) || isNaN(time_arr[1])) {
+            write_str('error-msg', 'Invalid input at line ' + i + 1);
+            arr = [];
+            break;
+        } else {
+            /* Calculate the segment run-time in seconds */
+            arr[i][0] = (time_arr[0] * 60 + time_arr[1]);
+        }
+    }
+    return arr;
+}
+
+</script>
+
+</head>
+
+<body onload="wall_clock_callback()">
+
+    <div id='menu'>
+
+    <div id='links'>
+<!--        <div class='menu-items'>Login</div>
+        <div class='menu-items'>Sign Up</div>
+        <div class='menu-items'>Help</div>
+        <div class='menu-items'>About</div>-->
+    </div>
+
+    <div id='current-time'>Please turn on Javascript.</div>
+
+    </div>
+
+<div id='title'>
+    Simple HTML Interval Training Timer
+</div>
+
+<div id='content'>
+    <div id='info-display-container'>
+    <div id='info-display'>
+        <div class='info-display-item' id='seg-text'>
+            <p></p>
+        </div>
+        <div class='info-display-item' id='seg-time'>
+            <p></p>
+        </div>
+<!--        <div class='info-display-item' id='seg-next'>
+            <p></p>
+        </div>-->
+    </div>
+    </div>
+
+    <div id='control-panel-container'>
+    <div id='control-panel'>
+        <form>
+        <div>
+            <p><label for="input-area">
+            Please type in your interval set using the following format:
+            </label></p>
+            <p><textarea
+                id="input-area"
+                name="input-area"
+                cols="60"
+                rows="15"
+                placeholder="Format:
+mm:ss; text string 1
+mm:ss; text string 2"
+                >
+00:10; Interval segment text 1
+1:10; Interval segment text 2
+</textarea></p>
+            <p>
+                <button type="button" onclick="start_timer()"
+                    class="control-button">
+                    Start
+                </button>
+                <button type="button"
+                    onclick="pause_timer()"
+                    class="control-button">
+                    Pause
+                </button>
+                <button type="button"
+                    onclick="reset_timer()"
+                    class="control-button">
+                    Reset
+                </button>
+            </p>
+        </div>
+        </form>
+    </div>
+    </div>
+
+</div>
+
+<div class='footer'>
+    <div class='footer-item'></div>
+    <div class='footer-item' id='error-msg'></div>
+    <div class='footer-item' align="right">
+    Created by Fufu
+    </div>
+</div>
+
+</body>
+
+</html>
