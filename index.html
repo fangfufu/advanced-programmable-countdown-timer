@@ -1,4 +1,34 @@
 <!DOCTYPE html>
+<!--
+    **  Simple HTML Interval Training Timer **
+
+    This timer was originally designed for UEA Triathlon Club, because the
+    exisiting solutions on the Internet are very shit. We tend to use these two
+    timers:
+
+    1) https://www.online-stopwatch.com/interval-timer/
+    2) http://www.intervaltimer.com/create/hiit-timer
+
+    The problem with 1) is that using it involves a lot of mouse clicking,
+    which is just silly. The problem with 2) is that it is not very
+    customisable. At one point I wrote this:
+    3) https://github.com/fangfufu/make_interval_timer_video,
+    That is actually quite good, we used it for a few sessions. The problem is
+    that you have to generate the video before session, which is also a bit
+    silly.
+
+    The web page is basically the HTML 5 solution to 3), I don't know about
+    whether the current cycling captain would use it, but if I am running a
+    turbo session, I would use it.
+
+    I thought the name of this timer is quite cool - it did take me a while to
+    come up with it. I wonder how long it would take for others to figure the
+    meaning behind the name out. Perhaps I will tell people before they figure
+    it out.
+
+    TODO: audio, progress animation, server-side scripting.
+-->
+
 <html lang='en'>
 <head>
 <meta charset='UTF-8'/>
@@ -10,21 +40,16 @@
     box-sizing: border-box;
 }
 
+body {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+}
+
 .menu-items {
     margin-left: 10px;
 }
 
-
-.footer {
-    display: flex;
-    justify-content: space-between;
-}
-
-.footer-item {
-    background-color: #D6E9FE;
-    padding: 10px;
-    flex: 1;
-}
 
 #menu {
     color: #fff;
@@ -101,9 +126,28 @@
     padding: 5px;
 }
 
+#footer {
+    display:flex;
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    flex: 1;
+    background-color: #D6E9FE;
+    padding: 15px;
+}
+
+.footer-item{
+    flex: 1;
+}
+
 #error-msg {
     color: #FF0000;
     text-align: center;
+}
+
+#copyright {
+    text-align: right;
 }
 </style>
 
@@ -160,6 +204,10 @@ function start_timer() {
         /* Parse the input */
         let input_area = document.getElementById('input-area');
         INT_SET = parse_input(input_area.value.trim());
+        if (!INT_SET) {
+            INT_SET_PARSED = false;
+            return;
+        }
         INT_SET_PARSED = true;
         SEG_NUM = 0;
         SEG_REM_TIME = INT_SET[0][0];
@@ -231,6 +279,7 @@ function clear_display() {
     write_str('seg-text', '');
     write_str('seg-time', '');
     set_display_border(false);
+    write_str('error-msg', '');
 }
 
 function set_highlight(s) {
@@ -352,9 +401,11 @@ where mm is the minute, ss is the second."
                     Reset
                 </button>
             </p>
-            <p>
+            <p title="Tick this box if you want the timer to
+automatically restart when it ends.">
             loop: <input type="checkbox" id="loop-checkbox" name="loop"
-                value="true">
+                value="true" title="Tick this box if you want the timer to
+automatically restart when it ends.">
             </p>
         </div>
         </form>
@@ -363,11 +414,11 @@ where mm is the minute, ss is the second."
 
 </div>
 
-<div class='footer'>
+<div id='footer'>
     <div class='footer-item'></div>
     <div class='footer-item' id='error-msg'></div>
-    <div class='footer-item' align="right">
-    Created by Fufu
+    <div class='footer-item' id='copyright'>
+    Created by Fufu Fang, fangfufu@fangfufu.co.uk
     </div>
 </div>
 
