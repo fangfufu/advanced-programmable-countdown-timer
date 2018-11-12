@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-    **  Simple HTML Interval Timer **
+    **  Advanced Programmable Countdown Timer **
 
     This timer was originally designed for UEA Triathlon Club, because the
     exisiting solutions on the Internet are very shit. We tend to use these two
@@ -22,7 +22,6 @@
     turbo session, I would use it.
 
     TODO:
-        - audio,
         - total time,
         - previous segment / next segment,
         - progress animation
@@ -116,18 +115,17 @@ body {
 
 #control-container {
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    align-items: stretch;
+    justify-content: space-around;
 }
 
 .control-box {
-    border: thin solid #888888;
-    padding: 5px;
-    margin: 5px;
-}
-
-#primary-control {
-    width: 300px;
+    border: thin solid #aaaaaa;
+    padding: 10px;
+    margin: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 #checkbox-container {
@@ -138,14 +136,6 @@ body {
 .control-button {
     margin: 5px;
     padding: 5px;
-}
-
-#audio-control {
-    width: 350px;
-}
-
-#audio-selector-container {
-    margin: 5px 0px 10px 0px;
 }
 
 #footer {
@@ -237,6 +227,8 @@ function start_timer() {
         input_area.disabled = true;
         set_display_border(true);
         set_bgcolor("seg-text", "white");
+        /* Hide audio controls */
+        show_element("audio-control", false);
     }
     /* Trigger the timer */
     countdown_callback();
@@ -246,9 +238,9 @@ function countdown_callback() {
     if (!INT_SET_PARSED) {
         write_str("error-msg",
         "countdown_callback(): INT_SET_PARSED == false");
+        throw "countdown_callback(): INT_SET_PARSED == false";
         return;
     }
-
     /* If we have reached the end of this segment */
     if (SEG_REM_TIME < 0) {
         /* Play a sound, if the audio checkbox is checked */
@@ -306,6 +298,7 @@ function clear_display() {
     write_str("seg-time", "");
     set_display_border(false);
     write_str("error-msg", "");
+    show_element("audio-control", true);
 }
 
 function set_highlight(s) {
@@ -355,7 +348,7 @@ function parse_input(str) {
     return arr;
 }
 
-function set_element_display(id, s) {
+function show_element(id, s) {
     if (s) {
         document.getElementById(id).style.display = "initial";
     } else {
@@ -364,7 +357,7 @@ function set_element_display(id, s) {
 }
 
 function checkbox_toggle_display(ce, id) {
-    set_element_display(id, document.getElementById(ce).checked);
+    show_element(id, document.getElementById(ce).checked);
 }
 
 function startup() {
@@ -414,7 +407,7 @@ function stop_audio() {
     </div>
 
 <div id="title">
-    Simple HTML Interval Timer
+    Advanced Programmable Countdown Timer
 </div>
 
 <div id="content">
@@ -430,7 +423,7 @@ function stop_audio() {
         <form>
             <div>
                 <label for="input-area">
-                Please type in your interval set below:
+                Please type what you need to countdown below:
                 </label>
             </div>
             <div>
@@ -481,7 +474,6 @@ where mm is the minute, ss is the second."
                     </div>
                 </div>
                 <div class="control-box" id="audio-control">
-                    <div id="audio-selector-container">
                         <p>Select a sound: </p>
                         <select id="audio-selector" onchange="set_audio()">
                             <option
@@ -493,13 +485,9 @@ where mm is the minute, ss is the second."
                                 Wrong answer buzzer
                             </option>
                         </select>
-                    </div>
-                    <div>
-                        <p>You can try out the sound below: </p>
-                        <audio controls id="audio-element">
+                        <audio id="audio-element">
                             <source id="audio-source" src=""></source>
                         </audio>
-                    </div>
                 </div>
             </div>
         </form>
