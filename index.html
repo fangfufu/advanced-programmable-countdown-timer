@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-    **  Simple HTML Interval Training Timer **
+    **  Simple HTML Interval Timer **
 
     This timer was originally designed for UEA Triathlon Club, because the
     exisiting solutions on the Internet are very shit. We tend to use these two
@@ -21,17 +21,17 @@
     whether the current cycling captain would use it, but if I am running a
     turbo session, I would use it.
 
-    I thought the name of this timer is quite cool - it did take me a while to
-    come up with it. I wonder how long it would take for others to figure the
-    meaning behind the name out. Perhaps I will tell people before they figure
-    it out.
-
-    TODO: audio, progress animation, server-side scripting.
+    TODO:
+        - audio,
+        - total time,
+        - previous segment / next segment,
+        - progress animation
+        - server-side scripting.
 -->
 
-<html lang='en'>
+<html lang="en">
 <head>
-<meta charset='UTF-8'/>
+<meta charset="UTF-8"/>
 <title>Timer</title>
 <style>
 * {
@@ -72,12 +72,10 @@ body {
     font-size: 1.5em;
     color: black;
     justify-content: center;
-    text-align: center;
 }
 
 #content {
     display: flex;
-    justify-content: center;
     flex-direction: column;
     text-align: center;
 }
@@ -88,11 +86,6 @@ body {
 }
 
 #display {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    flex-direction: column;
-    text-align: center;
     padding: 10px;
     width: 550px;
     margin: 5px;
@@ -121,9 +114,38 @@ body {
     margin: 5px;
 }
 
-.control-button {
-    margin: 0px 5px 10px 5px;
+#control-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.control-box {
+    border: thin solid #888888;
     padding: 5px;
+    margin: 5px;
+}
+
+#primary-control {
+    width: 300px;
+}
+
+#checkbox-container {
+    display: flex;
+    justify-content: space-around;
+}
+
+.control-button {
+    margin: 5px;
+    padding: 5px;
+}
+
+#audio-control {
+    width: 350px;
+}
+
+#audio-selector-container {
+    margin: 5px 0px 10px 0px;
 }
 
 #footer {
@@ -175,8 +197,8 @@ var HIGHLIGHT_START = 5;
 
 function wall_clock_callback() {
     var t = new Date();
-    document.getElementById('current-time').innerHTML =
-    'Current Time: ' + t.toLocaleTimeString('en-GB');
+    document.getElementById("current-time").innerHTML =
+    "Current Time: " + t.toLocaleTimeString("en-GB");
     setTimeout(wall_clock_callback, 500);
 }
 
@@ -190,19 +212,19 @@ function set_bgcolor(id, color) {
 
 function set_display_border(s) {
     if (s) {
-        document.getElementById("display").style.border = 'thin solid #000000';
+        document.getElementById("display").style.border = "thin solid #000000";
     } else {
-        document.getElementById("display").style.border = '';
+        document.getElementById("display").style.border = "";
     }
 }
 
 function start_timer() {
-    /* Parse the input text box, if we haven't. */
+    /* Parse the input text box, if we haven"t. */
     if (!INT_SET_PARSED) {
         /* Clear error messages */
-        write_str('error-msg', '');
+        write_str("error-msg", "");
         /* Parse the input */
-        let input_area = document.getElementById('input-area');
+        let input_area = document.getElementById("input-area");
         INT_SET = parse_input(input_area.value.trim());
         if (!INT_SET) {
             INT_SET_PARSED = false;
@@ -214,7 +236,7 @@ function start_timer() {
         /* Disable the input */
         input_area.disabled = true;
         set_display_border(true);
-        set_bgcolor('seg-text', 'white');
+        set_bgcolor("seg-text", "white");
     }
     /* Trigger the timer */
     countdown_callback();
@@ -222,22 +244,26 @@ function start_timer() {
 
 function countdown_callback() {
     if (!INT_SET_PARSED) {
-        write_str('error-msg',
-        'countdown_callback(): INT_SET_PARSED == false');
+        write_str("error-msg",
+        "countdown_callback(): INT_SET_PARSED == false");
         return;
     }
 
     /* If we have reached the end of this segment */
     if (SEG_REM_TIME < 0) {
+        /* Play a sound, if the audio checkbox is checked */
+        if(document.getElementById("audio-checkbox").checked) {
+            play_audio();
+        }
         SEG_NUM++;
         /* If this segment is longer than the array length */
         if (SEG_NUM >= INT_SET.length) {
             /* if we the loop checkbox is not checked */
-            if(!document.getElementById('loop-checkbox').checked) {
+            if(!document.getElementById("loop-checkbox").checked) {
                 reset_timer();
                 set_display_border(true)
-                update_display(0, 'The end, well done! 😊');
-                set_bgcolor('seg-text', 'yellow');
+                update_display(0, "The end, well done! 😊");
+                set_bgcolor("seg-text", "yellow");
                 return;
             }
             SEG_NUM = 0;
@@ -251,16 +277,16 @@ function countdown_callback() {
 }
 
 function update_display(time, text) {
-    write_str('seg-text', text);
+    write_str("seg-text", text);
     var min = Math.floor(time / 60);
     var sec = time % 60;
     var min_str = min.toString();
     var sec_str = sec.toString();
     if (min < 10) {
-        min_str = '0' + min_str;
+        min_str = "0" + min_str;
     }
     if (sec < 10) {
-        sec_str = '0' + sec_str;
+        sec_str = "0" + sec_str;
     }
     if (min == 0 && sec < HIGHLIGHT_START) {
         if (!HIGHLIGHT) {
@@ -271,23 +297,23 @@ function update_display(time, text) {
     } else {
         set_highlight(false);
     }
-    var time_str = min_str + ':' + sec_str;
-    write_str('seg-time', time_str);
+    var time_str = min_str + ":" + sec_str;
+    write_str("seg-time", time_str);
 }
 
 function clear_display() {
-    write_str('seg-text', '');
-    write_str('seg-time', '');
+    write_str("seg-text", "");
+    write_str("seg-time", "");
     set_display_border(false);
-    write_str('error-msg', '');
+    write_str("error-msg", "");
 }
 
 function set_highlight(s) {
     if (s) {
-        set_bgcolor('seg-time', 'yellow');
+        set_bgcolor("seg-time", "yellow");
         HIGHLIGHT = true;
     } else {
-        set_bgcolor('seg-time', 'white');
+        set_bgcolor("seg-time", "white");
         HIGHLIGHT = false;
     }
 }
@@ -297,7 +323,7 @@ function pause_timer() {
 }
 
 function reset_timer() {
-    var input_area = document.getElementById('input-area');
+    var input_area = document.getElementById("input-area");
     input_area.disabled = false;
     clearTimeout(COUNTDOWN_CLOCK);
     INT_SET_PARSED = false;
@@ -310,15 +336,15 @@ function parse_input(str) {
     var arr = str.split(/\r|\r\n|\n/);
     /* Split each line into fields */
     for (let i = 0; i < arr.length; i++) {
-        arr[i] = arr[i].split(';');
+        arr[i] = arr[i].split(";");
         /* Split the first field into times */
-        let time_arr = arr[i][0].split(':');
+        let time_arr = arr[i][0].split(":");
         /* Explicitly convert string into int */
         time_arr[0] = parseInt(time_arr[0]);
         time_arr[1] = parseInt(time_arr[1]);
         /* Check if the conversion had been valid */
         if (isNaN(time_arr[0]) || isNaN(time_arr[1])) {
-            write_str('error-msg', 'Invalid input at line ' + i + 1);
+            write_str("error-msg", "Invalid input at line " + i + 1);
             arr = [];
             break;
         } else {
@@ -329,95 +355,163 @@ function parse_input(str) {
     return arr;
 }
 
+function set_element_display(id, s) {
+    if (s) {
+        document.getElementById(id).style.display = "initial";
+    } else {
+        document.getElementById(id).style.display = "none";
+    }
+}
+
+function checkbox_toggle_display(ce, id) {
+    set_element_display(id, document.getElementById(ce).checked);
+}
+
+function startup() {
+    wall_clock_callback();
+    checkbox_toggle_display('audio-checkbox', 'audio-control');
+    set_audio();
+}
+
+function set_audio() {
+    audio_elem = document.getElementById("audio-element");
+    audio_src = document.getElementById("audio-source");
+    audio_src.src = document.getElementById("audio-selector").value;
+    audio_elem.load();
+    play_audio();
+}
+
+function play_audio() {
+    audio_elem = document.getElementById("audio-element");
+    audio_elem.play();
+    setTimeout(stop_audio, 1000);
+
+}
+
+function stop_audio() {
+    audio_elem = document.getElementById("audio-element");
+    audio_elem.pause();
+    audio_elem.load();
+}
 </script>
 
 </head>
 
-<body onload="wall_clock_callback()">
+<body onload="startup()">
 
-    <div id='menu'>
+    <div id="menu">
 
-    <div id='links'>
-<!--        <div class='menu-items'>Login</div>
-        <div class='menu-items'>Sign Up</div>
-        <div class='menu-items'>Help</div>
-        <div class='menu-items'>About</div>
+    <div id="links">
+<!--        <div class="menu-items">Login</div>
+        <div class="menu-items">Sign Up</div>
+        <div class="menu-items">Help</div>
+        <div class="menu-items">About</div>
 -->
     </div>
 
-    <div id='current-time'>Please turn on Javascript.</div>
+    <div id="current-time">Please turn on Javascript.</div>
 
     </div>
 
-<div id='title'>
-    Simple HTML Interval Training Timer
+<div id="title">
+    Simple HTML Interval Timer
 </div>
 
-<div id='content'>
-    <div id='display-container'>
-    <div id='display'>
-        <div class='display-item' id='seg-text'>
-            <p></p>
-        </div>
-        <div class='display-item' id='seg-time'>
-            <p></p>
-        </div>
+<div id="content">
+    <div id="display-container">
+    <div id="display">
+        <div class="display-item" id="seg-text"></div>
+        <div class="display-item" id="seg-time"></div>
     </div>
     </div>
 
-    <div id='control-panel-container'>
-    <div id='control-panel'>
+    <div id="control-panel-container">
+    <div id="control-panel">
         <form>
-        <div>
-            <p><label for="input-area">
-            Please type in your interval set below:
-            </label></p>
-            <p><textarea
-                id="input-area"
-                name="input-area"
-                cols="60"
-                rows="15"
-                placeholder="Format:
+            <div>
+                <label for="input-area">
+                Please type in your interval set below:
+                </label>
+            </div>
+            <div>
+                <textarea
+                    id="input-area"
+                    name="input-area"
+                    cols="60"
+                    rows="15"
+                    placeholder="Format:
 mm:ss; text string 1
 mm:ss; text string 2
 where mm is the minute, ss is the second."
                 >
 00:10; Interval segment text 1
 1:10; Interval segment text 2
-</textarea></p>
-            <p>
-                <button type="button" onclick="start_timer()"
-                    class="control-button">
-                    Start
-                </button>
-                <button type="button"
-                    onclick="pause_timer()"
-                    class="control-button">
-                    Pause
-                </button>
-                <button type="button"
-                    onclick="reset_timer()"
-                    class="control-button">
-                    Reset
-                </button>
-            </p>
-            <p title="Tick this box if you want the timer to
-automatically restart when it ends.">
-            loop: <input type="checkbox" id="loop-checkbox" name="loop"
-                value="true" title="Tick this box if you want the timer to
-automatically restart when it ends.">
-            </p>
-        </div>
+                </textarea>
+            </div>
+            <div id="control-container">
+                <div class="control-box" id="primary-control">
+                    <div>
+                        <button type="button" onclick="start_timer()"
+                            class="control-button">
+                            Start
+                        </button>
+                        <button type="button"
+                            onclick="pause_timer()"
+                            class="control-button">
+                            Pause
+                        </button>
+                        <button type="button"
+                            onclick="reset_timer()"
+                            class="control-button">
+                            Reset
+                        </button>
+                    </div>
+                    <div id="checkbox-container">
+                        <div title="Tick this box if you want the timer to automatically restart when it ends.">
+                            loop:
+                            <input type="checkbox" id="loop-checkbox"
+                            name="loop-checkbox" value="true">
+                        </div>
+                        <div title="Tick this box if you want a sound to be played after each interval.">
+                            sound:
+                            <input type="checkbox" id="audio-checkbox"
+                                name="audio-checkbox" value="true" checked="true"
+                                onchange="checkbox_toggle_display('audio-checkbox', 'audio-control')">
+                        </div>
+                    </div>
+                </div>
+                <div class="control-box" id="audio-control">
+                    <div id="audio-selector-container">
+                        <p>Select a sound: </p>
+                        <select id="audio-selector" onchange="set_audio()">
+                            <option
+                                value="Eas Beep-SoundBible.com-238025417.mp3">
+                                Emergency Alert System Beep
+                            </option>
+                            <option
+                                value="54047__guitarguy1985__buzzer.wav">
+                                Wrong answer buzzer
+                            </option>
+                        </select>
+                    </div>
+                    <div>
+                        <p>You can try out the sound below: </p>
+                        <audio controls id="audio-element">
+                            <source id="audio-source" src=""></source>
+                        </audio>
+                    </div>
+                </div>
+            </div>
         </form>
     </div>
     </div>
 
 </div>
 
-<div id='footer'>
-    <div class='footer-item'></div>
-    <div class='footer-item' id='error-msg'></div>
-    <div class='footer-item' id='copyright'>
+<div id="footer">
+    <div class="footer-item"></div>
+    <div class="footer-item" id="error-msg"></div>
+    <div class="footer-item" id="copyright">
     Created by Fufu Fang, fangfufu@fangfufu.co.uk
     </div>
 </div>
