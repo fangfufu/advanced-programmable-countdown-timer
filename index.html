@@ -157,11 +157,13 @@ var HIGHLIGHT = false;
 /* The time after which the timer is highlighted */
 var HIGHLIGHT_START = 5;
 
-function wall_clock_callback() {
-    var t = new Date();
-    write_str("current-time", "Current Time: " +
-                t.toLocaleTimeString("en-GB"));
-    setTimeout(wall_clock_callback, 500);
+/* -------------- Shortcut function -------------- */
+function set_bg_color(id, color) {
+    document.getElementById(id).style.backgroundColor = color;
+}
+
+function set_font_color(id, color) {
+    document.getElementById(id).style.color = color;
 }
 
 function write_str(id, str) {
@@ -172,14 +174,19 @@ function write_html(id, str) {
     document.getElementById(id).innerHTML = str;
 }
 
-function set_bg_color(id, color) {
-    document.getElementById(id).style.backgroundColor = color;
+function show_element(id, s) {
+    if (s) {
+        document.getElementById(id).style.display = "initial";
+    } else {
+        document.getElementById(id).style.display = "none";
+    }
 }
 
-function set_font_color(id, color) {
-    document.getElementById(id).style.color = color;
+function checkbox_toggle_display(ce, id) {
+    show_element(id, document.getElementById(ce).checked);
 }
 
+/* --------------- Display related functions -------------- */
 function set_display_border(s) {
     if (s) {
         document.getElementById("display").style.border = "thin solid #000000";
@@ -188,77 +195,14 @@ function set_display_border(s) {
     }
 }
 
-function start_timer() {
-    /* Parse the input text box, if we haven"t. */
-    if (!INT_SET_PARSED) {
-        /* Clear error messages */
-        write_str("error-msg", "");
-        /* Parse the input */
-        INT_SET = parse_input();
-        if (INT_SET.length < 1) {
-            INT_SET_PARSED = false;
-            return;
-        }
-        INT_SET_PARSED = true;
-        SEG_NUM = 0;
-        SEG_REM_TIME = INT_SET[0][0];
-        /* Disable the input */
-        let input_area = document.getElementById("input-area");
-        input_area.disabled = true;
-        set_display_border(true);
-        set_bg_color("seg-text", "initial");
+function set_highlight(s) {
+    if (s) {
+        set_bg_color("seg-time", "yellow");
+        HIGHLIGHT = true;
+    } else {
+        set_bg_color("seg-time", "initial");
+        HIGHLIGHT = false;
     }
-    /* Trigger the timer */
-    countdown_callback();
-}
-
-function countdown_callback() {
-    if (!INT_SET_PARSED) {
-        write_str("error-msg",
-        "countdown_callback(): INT_SET_PARSED == false");
-        throw "countdown_callback(): INT_SET_PARSED == false";
-        return;
-    }
-    /* If we have reached the end of this segment */
-    if (SEG_REM_TIME < 0) {
-        /* Play a sound, if the audio checkbox is checked */
-        if(document.getElementById("audio-checkbox").checked) {
-            play_audio();
-        }
-        SEG_NUM++;
-        /* If this segment is longer than the array length */
-        if (SEG_NUM >= INT_SET.length) {
-            /* if we the loop checkbox is not checked */
-            if(!document.getElementById("loop-checkbox").checked) {
-                reset_timer();
-                set_display_border(true)
-                update_display(0, "The end, well done! 😊");
-                set_bg_color("seg-text", "yellow");
-                return;
-            }
-            SEG_NUM = 0;
-        }
-        SEG_REM_TIME = INT_SET[SEG_NUM][0];
-    }
-    /* update display, decrease the counter */
-    update_display(SEG_REM_TIME, INT_SET[SEG_NUM][1]);
-    SEG_REM_TIME--;
-    COUNTDOWN_CLOCK = setTimeout(countdown_callback, 1000);
-}
-
-function sec_to_time_str(time) {
-    var min = Math.floor(time / 60);
-    var sec = time % 60;
-    var min_str = min.toString();
-    var sec_str = sec.toString();
-    if (min < 10) {
-        min_str = "0" + min_str;
-    }
-    if (sec < 10) {
-        sec_str = "0" + sec_str;
-    }
-    var time_str = min_str + ":" + sec_str;
-    return time_str;
 }
 
 function update_display(time, text) {
@@ -283,26 +227,42 @@ function clear_display() {
     write_str("error-msg", "");
 }
 
-function set_highlight(s) {
-    if (s) {
-        set_bg_color("seg-time", "yellow");
-        HIGHLIGHT = true;
-    } else {
-        set_bg_color("seg-time", "initial");
-        HIGHLIGHT = false;
+/*------------------- Audio functions -----------------*/
+function set_audio() {
+    audio_elem = document.getElementById("audio-element");
+    audio_src = document.getElementById("audio-source");
+    audio_src.src = document.getElementById("audio-selector").value;
+    audio_elem.load();
+    play_audio();
+}
+
+function play_audio() {
+    audio_elem = document.getElementById("audio-element");
+    audio_elem.play();
+    setTimeout(stop_audio, 1000);
+
+}
+
+function stop_audio() {
+    audio_elem = document.getElementById("audio-element");
+    audio_elem.pause();
+    audio_elem.load();
+}
+
+/*-------------------- Utility functions --------------------*/
+function sec_to_time_str(time) {
+    var min = Math.floor(time / 60);
+    var sec = time % 60;
+    var min_str = min.toString();
+    var sec_str = sec.toString();
+    if (min < 10) {
+        min_str = "0" + min_str;
     }
-}
-
-function pause_timer() {
-    clearTimeout(COUNTDOWN_CLOCK);
-}
-
-function reset_timer() {
-    var input_area = document.getElementById("input-area");
-    input_area.disabled = false;
-    clearTimeout(COUNTDOWN_CLOCK);
-    INT_SET_PARSED = false;
-    clear_display();
+    if (sec < 10) {
+        sec_str = "0" + sec_str;
+    }
+    var time_str = min_str + ":" + sec_str;
+    return time_str;
 }
 
 /* Tokenise the input text */
@@ -344,39 +304,86 @@ function parse_input() {
     return arr;
 }
 
-function show_element(id, s) {
-    if (s) {
-        document.getElementById(id).style.display = "initial";
-    } else {
-        document.getElementById(id).style.display = "none";
+/* --------------- Timer callback functions --------------- */
+function countdown_callback() {
+    if (!INT_SET_PARSED) {
+        write_str("error-msg",
+        "countdown_callback(): INT_SET_PARSED == false");
+        throw "countdown_callback(): INT_SET_PARSED == false";
+        return;
     }
+    /* If we have reached the end of this segment */
+    if (SEG_REM_TIME < 0) {
+        /* Play a sound, if the audio checkbox is checked */
+        if(document.getElementById("audio-checkbox").checked) {
+            play_audio();
+        }
+        SEG_NUM++;
+        /* If this segment is longer than the array length */
+        if (SEG_NUM >= INT_SET.length) {
+            /* if we the loop checkbox is not checked */
+            if(!document.getElementById("loop-checkbox").checked) {
+                reset_timer();
+                set_display_border(true)
+                update_display(0, "That's it, well done! 😊");
+                set_bg_color("seg-text", "yellow");
+                return;
+            }
+            SEG_NUM = 0;
+        }
+        SEG_REM_TIME = INT_SET[SEG_NUM][0];
+    }
+    /* update display, decrease the counter */
+    update_display(SEG_REM_TIME, INT_SET[SEG_NUM][1]);
+    SEG_REM_TIME--;
+    COUNTDOWN_CLOCK = setTimeout(countdown_callback, 1000);
 }
 
-function checkbox_toggle_display(ce, id) {
-    show_element(id, document.getElementById(ce).checked);
+function wall_clock_callback() {
+    var t = new Date();
+    write_str("current-time", "Current Time: " +
+                t.toLocaleTimeString("en-GB"));
+    setTimeout(wall_clock_callback, 500);
 }
 
-function set_audio() {
-    audio_elem = document.getElementById("audio-element");
-    audio_src = document.getElementById("audio-source");
-    audio_src.src = document.getElementById("audio-selector").value;
-    audio_elem.load();
-    play_audio();
+/* ----------------- Button functions ------------------ */
+function start_timer() {
+    /* Parse the input text box, if we haven"t. */
+    if (!INT_SET_PARSED) {
+        /* Clear error messages */
+        write_str("error-msg", "");
+        /* Parse the input */
+        INT_SET = parse_input();
+        if (INT_SET.length < 1) {
+            INT_SET_PARSED = false;
+            return;
+        }
+        INT_SET_PARSED = true;
+        SEG_NUM = 0;
+        SEG_REM_TIME = INT_SET[0][0];
+        /* Disable the input */
+        let input_area = document.getElementById("input-area");
+        input_area.disabled = true;
+        set_display_border(true);
+        set_bg_color("seg-text", "initial");
+    }
+    /* Trigger the timer */
+    countdown_callback();
 }
 
-function play_audio() {
-    audio_elem = document.getElementById("audio-element");
-    audio_elem.play();
-    setTimeout(stop_audio, 1000);
-
+function pause_timer() {
+    clearTimeout(COUNTDOWN_CLOCK);
 }
 
-function stop_audio() {
-    audio_elem = document.getElementById("audio-element");
-    audio_elem.pause();
-    audio_elem.load();
+function reset_timer() {
+    var input_area = document.getElementById("input-area");
+    input_area.disabled = false;
+    clearTimeout(COUNTDOWN_CLOCK);
+    INT_SET_PARSED = false;
+    clear_display();
 }
 
+/* ----------------- Startup functions ------------------ */
 function startup() {
     wall_clock_callback();
     checkbox_toggle_display('audio-checkbox', 'audio-control');
@@ -442,16 +449,23 @@ where mm is the minute, ss is the second.">
             <div id="control-container">
                 <div class="control-box" id="primary-control">
                     <div>
-                        <button type="button" onclick="start_timer()"
+                        <button
+                            id="start-button"
+                            type="button"
+                            onclick="start_timer()"
                             class="control-button">
                             Start
                         </button>
-                        <button type="button"
+                        <button
+                            id="pause-button"
+                            type="button"
                             onclick="pause_timer()"
                             class="control-button">
                             Pause
                         </button>
-                        <button type="button"
+                        <button
+                            id="reset-button"
+                            type="button"
                             onclick="reset_timer()"
                             class="control-button">
                             Reset
