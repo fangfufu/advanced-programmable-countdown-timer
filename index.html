@@ -1,32 +1,4 @@
 <!DOCTYPE html>
-<!--
-    **  Advanced Programmable Countdown Timer **
-
-    This timer was originally designed for UEA Triathlon Club, because the
-    exisiting solutions on the Internet are very shit. We tend to use these two
-    timers:
-
-    1) https://www.online-stopwatch.com/interval-timer/
-    2) http://www.intervaltimer.com/create/hiit-timer
-
-    The problem with 1) is that using it involves a lot of mouse clicking,
-    which is just silly. The problem with 2) is that it is not very
-    customisable. At one point I wrote this:
-    3) https://github.com/fangfufu/make_interval_timer_video,
-    That is actually quite good, we used it for a few sessions. The problem is
-    that you have to generate the video before session, which is also a bit
-    silly.
-
-    The web page is basically the HTML 5 solution to 3), I don't know about
-    whether the current cycling captain would use it, but if I am running a
-    turbo session, I would use it.
-
-    TODO:
-        - total time,
-        - previous segment / next segment,
-        - progress animation
-        - server-side scripting.
--->
 
 <html lang="en">
 <head>
@@ -187,8 +159,8 @@ var HIGHLIGHT_START = 5;
 
 function wall_clock_callback() {
     var t = new Date();
-    document.getElementById("current-time").innerHTML =
-    "Current Time: " + t.toLocaleTimeString("en-GB");
+    write_str("current-time", "Current Time: " +
+                t.toLocaleTimeString("en-GB"));
     setTimeout(wall_clock_callback, 500);
 }
 
@@ -196,8 +168,16 @@ function write_str(id, str) {
     document.getElementById(id).textContent = str;
 }
 
-function set_bgcolor(id, color) {
+function write_html(id, str) {
+    document.getElementById(id).innerHTML = str;
+}
+
+function set_bg_color(id, color) {
     document.getElementById(id).style.backgroundColor = color;
+}
+
+function set_font_color(id, color) {
+    document.getElementById(id).style.color = color;
 }
 
 function set_display_border(s) {
@@ -214,9 +194,8 @@ function start_timer() {
         /* Clear error messages */
         write_str("error-msg", "");
         /* Parse the input */
-        let input_area = document.getElementById("input-area");
-        INT_SET = parse_input(input_area.value.trim());
-        if (!INT_SET) {
+        INT_SET = parse_input();
+        if (INT_SET.length < 1) {
             INT_SET_PARSED = false;
             return;
         }
@@ -224,11 +203,10 @@ function start_timer() {
         SEG_NUM = 0;
         SEG_REM_TIME = INT_SET[0][0];
         /* Disable the input */
+        let input_area = document.getElementById("input-area");
         input_area.disabled = true;
         set_display_border(true);
-        set_bgcolor("seg-text", "white");
-        /* Hide audio controls */
-        show_element("audio-control", false);
+        set_bg_color("seg-text", "initial");
     }
     /* Trigger the timer */
     countdown_callback();
@@ -255,7 +233,7 @@ function countdown_callback() {
                 reset_timer();
                 set_display_border(true)
                 update_display(0, "The end, well done! 😊");
-                set_bgcolor("seg-text", "yellow");
+                set_bg_color("seg-text", "yellow");
                 return;
             }
             SEG_NUM = 0;
@@ -268,8 +246,7 @@ function countdown_callback() {
     COUNTDOWN_CLOCK = setTimeout(countdown_callback, 1000);
 }
 
-function update_display(time, text) {
-    write_str("seg-text", text);
+function sec_to_time_str(time) {
     var min = Math.floor(time / 60);
     var sec = time % 60;
     var min_str = min.toString();
@@ -280,7 +257,13 @@ function update_display(time, text) {
     if (sec < 10) {
         sec_str = "0" + sec_str;
     }
-    if (min == 0 && sec < HIGHLIGHT_START) {
+    var time_str = min_str + ":" + sec_str;
+    return time_str;
+}
+
+function update_display(time, text) {
+    write_str("seg-text", text);
+    if (time < HIGHLIGHT_START) {
         if (!HIGHLIGHT) {
             set_highlight(true);
         } else {
@@ -289,7 +272,7 @@ function update_display(time, text) {
     } else {
         set_highlight(false);
     }
-    var time_str = min_str + ":" + sec_str;
+    var time_str = sec_to_time_str(time);
     write_str("seg-time", time_str);
 }
 
@@ -298,15 +281,14 @@ function clear_display() {
     write_str("seg-time", "");
     set_display_border(false);
     write_str("error-msg", "");
-    show_element("audio-control", true);
 }
 
 function set_highlight(s) {
     if (s) {
-        set_bgcolor("seg-time", "yellow");
+        set_bg_color("seg-time", "yellow");
         HIGHLIGHT = true;
     } else {
-        set_bgcolor("seg-time", "white");
+        set_bg_color("seg-time", "initial");
         HIGHLIGHT = false;
     }
 }
@@ -324,9 +306,13 @@ function reset_timer() {
 }
 
 /* Tokenise the input text */
-function parse_input(str) {
+function parse_input() {
+    var input_area = document.getElementById("input-area");
+    var str = input_area.value.trim();
     /* Split the input string to lines */
     var arr = str.split(/\r|\r\n|\n/);
+    /* The total time */
+    var total = 0;
     /* Split each line into fields */
     for (let i = 0; i < arr.length; i++) {
         arr[i] = arr[i].split(";");
@@ -337,13 +323,23 @@ function parse_input(str) {
         time_arr[1] = parseInt(time_arr[1]);
         /* Check if the conversion had been valid */
         if (isNaN(time_arr[0]) || isNaN(time_arr[1])) {
-            write_str("error-msg", "Invalid input at line " + i + 1);
+            write_html("total-time", "<p>Error at:</p>" +
+                 "<p>Line " + (i + 1) + "</p>");
+            set_font_color("total-time", "red");
             arr = [];
-            break;
+            return arr;
         } else {
             /* Calculate the segment run-time in seconds */
             arr[i][0] = (time_arr[0] * 60 + time_arr[1]);
+            /* Add to the total time */
+            total += arr[i][0];
         }
+    }
+    /* Calculate the total time, if the array is not empty*/
+    if (arr.length > 0) {
+        write_html("total-time", "<p>Total time:</p> <p>" +
+            sec_to_time_str(total) + "</p>");
+        set_font_color("total-time", "initial");
     }
     return arr;
 }
@@ -358,12 +354,6 @@ function show_element(id, s) {
 
 function checkbox_toggle_display(ce, id) {
     show_element(id, document.getElementById(ce).checked);
-}
-
-function startup() {
-    wall_clock_callback();
-    checkbox_toggle_display('audio-checkbox', 'audio-control');
-    set_audio();
 }
 
 function set_audio() {
@@ -386,6 +376,14 @@ function stop_audio() {
     audio_elem.pause();
     audio_elem.load();
 }
+
+function startup() {
+    wall_clock_callback();
+    checkbox_toggle_display('audio-checkbox', 'audio-control');
+    set_audio();
+    document.addEventListener('keyup', parse_input);
+}
+
 </script>
 
 </head>
@@ -430,16 +428,16 @@ function stop_audio() {
                 <textarea
                     id="input-area"
                     name="input-area"
+                    onchange="parse_input()"
                     cols="60"
                     rows="15"
                     placeholder="Format:
 mm:ss; text string 1
 mm:ss; text string 2
-where mm is the minute, ss is the second."
-                >
+where mm is the minute, ss is the second.">
 00:10; Interval segment text 1
 1:10; Interval segment text 2
-                </textarea>
+</textarea>
             </div>
             <div id="control-container">
                 <div class="control-box" id="primary-control">
@@ -473,16 +471,20 @@ where mm is the minute, ss is the second."
                         </div>
                     </div>
                 </div>
+                <div class="control-box" id="total-time">
+                    <p>Total time:</p>
+                    <p>00:00</p>
+                </div>
                 <div class="control-box" id="audio-control">
                         <p>Select a sound: </p>
                         <select id="audio-selector" onchange="set_audio()">
                             <option
                                 value="Eas Beep-SoundBible.com-238025417.mp3">
-                                Emergency Alert System Beep
+                                EAS Beep
                             </option>
                             <option
                                 value="54047__guitarguy1985__buzzer.wav">
-                                Wrong answer buzzer
+                                Buzzer
                             </option>
                         </select>
                         <audio id="audio-element">
@@ -493,7 +495,6 @@ where mm is the minute, ss is the second."
         </form>
     </div>
     </div>
-
 </div>
 
 <div id="footer">
