@@ -140,7 +140,7 @@ body {
 var COUNTDOWN_CLOCK;
 
 /* Check if we have already parsed the interval set */
-var INT_SET_PARSED = false;
+var STARTED = false;
 
 /* The parsed interval set */
 var INT_SET;
@@ -160,6 +160,10 @@ var HIGHLIGHT_START = 5;
 /* -------------- Shortcut function -------------- */
 function set_bg_color(id, color) {
     document.getElementById(id).style.backgroundColor = color;
+}
+
+function set_disabled(id, s) {
+    document.getElementById(id).disabled = s;
 }
 
 function set_font_color(id, color) {
@@ -286,8 +290,9 @@ function parse_input() {
             write_html("total-time", "<p>Error at:</p>" +
                  "<p>Line " + (i + 1) + "</p>");
             set_font_color("total-time", "red");
-            arr = [];
-            return arr;
+            set_disabled("start-button", true);
+            INT_SET = [];
+            return;
         } else {
             /* Calculate the segment run-time in seconds */
             arr[i][0] = (time_arr[0] * 60 + time_arr[1]);
@@ -301,15 +306,17 @@ function parse_input() {
             sec_to_time_str(total) + "</p>");
         set_font_color("total-time", "initial");
     }
-    return arr;
+    set_disabled("start-button", false);
+    INT_SET = arr;
+    return;
 }
 
 /* --------------- Timer callback functions --------------- */
 function countdown_callback() {
-    if (!INT_SET_PARSED) {
+    if (!STARTED) {
         write_str("error-msg",
-        "countdown_callback(): INT_SET_PARSED == false");
-        throw "countdown_callback(): INT_SET_PARSED == false";
+        "countdown_callback(): STARTED == false");
+        throw "countdown_callback(): STARTED == false";
         return;
     }
     /* If we have reached the end of this segment */
@@ -349,37 +356,32 @@ function wall_clock_callback() {
 /* ----------------- Button functions ------------------ */
 function start_timer() {
     /* Parse the input text box, if we haven"t. */
-    if (!INT_SET_PARSED) {
+    if (!STARTED) {
         /* Clear error messages */
         write_str("error-msg", "");
-        /* Parse the input */
-        INT_SET = parse_input();
-        if (INT_SET.length < 1) {
-            INT_SET_PARSED = false;
-            return;
-        }
-        INT_SET_PARSED = true;
+        STARTED = true;
         SEG_NUM = 0;
         SEG_REM_TIME = INT_SET[0][0];
-        /* Disable the input */
-        let input_area = document.getElementById("input-area");
-        input_area.disabled = true;
+        set_disabled("input-area", true);
         set_display_border(true);
         set_bg_color("seg-text", "initial");
     }
+    set_disabled("pause-button", false);
+    set_disabled("start-button", true);
     /* Trigger the timer */
     countdown_callback();
 }
 
 function pause_timer() {
     clearTimeout(COUNTDOWN_CLOCK);
+    set_disabled("pause-button", true);
+    set_disabled("start-button", false);
 }
 
 function reset_timer() {
-    var input_area = document.getElementById("input-area");
-    input_area.disabled = false;
+    set_disabled("input-area", false);
     clearTimeout(COUNTDOWN_CLOCK);
-    INT_SET_PARSED = false;
+    STARTED = false;
     clear_display();
 }
 
@@ -389,6 +391,7 @@ function startup() {
     checkbox_toggle_display('audio-checkbox', 'audio-control');
     set_audio();
     document.addEventListener('keyup', parse_input);
+    set_disabled("pause-button", true);
 }
 
 </script>
