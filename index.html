@@ -98,6 +98,7 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    align-items: center;
 }
 
 #checkbox-container {
@@ -123,11 +124,6 @@ body {
 
 .footer-item{
     flex: 1;
-}
-
-#error-msg {
-    color: #FF0000;
-    text-align: center;
 }
 
 #copyright {
@@ -181,7 +177,7 @@ function write_html(id, str) {
     document.getElementById(id).innerHTML = str;
 }
 
-function show_element(id, s) {
+function set_element_display(id, s) {
     if (s) {
         document.getElementById(id).style.display = "initial";
     } else {
@@ -190,7 +186,7 @@ function show_element(id, s) {
 }
 
 function checkbox_toggle_display(ce, id) {
-    show_element(id, document.getElementById(ce).checked);
+    set_element_display(id, document.getElementById(ce).checked);
 }
 
 /* --------------- Display related functions -------------- */
@@ -232,7 +228,6 @@ function clear_display() {
     write_str("seg-text", "");
     write_str("seg-time", "");
     set_display_border(false);
-    write_str("error-msg", "");
 }
 
 /*------------------- Audio functions -----------------*/
@@ -321,8 +316,6 @@ function parse_input() {
 /* --------------- Timer callback functions --------------- */
 function countdown_callback() {
     if (!STARTED) {
-        write_str("error-msg",
-        "countdown_callback(): STARTED == false");
         throw "countdown_callback(): STARTED == false";
         return;
     }
@@ -343,6 +336,11 @@ function countdown_callback() {
                 set_bg_color("seg-text", "yellow");
                 /* Reset the timer's state */
                 parse_input();
+                set_element_display("input-area", false);
+                set_element_display("input-label", false);
+                set_element_display("finish-image", true);
+                set_disabled("pause-button", true);
+                set_disabled("start-button", true);
                 return;
             }
             SEG_NUM = 0;
@@ -371,7 +369,6 @@ function start_button() {
     /* Parse the input text box, if we haven"t. */
     if (!STARTED) {
         /* Clear error messages */
-        write_str("error-msg", "");
         STARTED = true;
         SEG_NUM = 0;
         SEG_REM_TIME = COUNTDOWN_SET[0][0];
@@ -382,7 +379,6 @@ function start_button() {
     set_disabled("pause-button", false);
     set_disabled("start-button", true);
     set_font_color("seg-text", "initial");
-    /* Trigger the timer */
     countdown_callback();
     document.removeEventListener('keyup', parse_input);
 }
@@ -401,6 +397,11 @@ function reset_button() {
     STARTED = false;
     clear_display();
     document.addEventListener('keyup', parse_input);
+    set_disabled("pause-button", true);
+    set_disabled("start-button", false);
+    set_element_display("input-area", true);
+    set_element_display("input-label", true);
+    set_element_display("finish-image", false);
 }
 
 /* ----------------- Startup functions ------------------ */
@@ -411,6 +412,7 @@ function startup() {
     document.addEventListener('keyup', parse_input);
     set_disabled("pause-button", true);
     parse_input();
+    set_element_display("finish-image", false);
 }
 
 </script>
@@ -449,10 +451,11 @@ function startup() {
     <div id="control-panel">
         <form>
             <div>
-                <label for="input-area">
+                <label id="input-label" for="input-area">
                 Please type what you need to countdown below:
                 </label>
             </div>
+
             <div>
                 <textarea
                     id="input-area"
@@ -464,10 +467,14 @@ function startup() {
 mm:ss; text string 1
 mm:ss; text string 2
 where mm is the minute, ss is the second.">
-00:10; Interval segment text 1
-1:10; Interval segment text 2
+00:01; Interval segment text 1
 </textarea>
             </div>
+
+            <img id="finish-image"
+                src="Bellis_perennis_macro.jpg"
+                height="300">
+
             <div id="control-container">
                 <div class="control-box" id="primary-control">
                     <div>
@@ -542,8 +549,6 @@ where mm is the minute, ss is the second.">
 </div>
 
 <div id="footer">
-    <div class="footer-item"></div>
-    <div class="footer-item" id="error-msg"></div>
     <div class="footer-item" id="copyright">
     Created by Fufu Fang, fangfufu@fangfufu.co.uk
     </div>
