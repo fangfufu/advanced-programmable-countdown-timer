@@ -139,16 +139,16 @@ body {
 /* Triggers the callback function to update the countdown */
 var COUNTDOWN_CLOCK;
 
-/* Check if we have already parsed the interval set */
+/* Check if we have already parsed the countdown set */
 var STARTED = false;
 
-/* The parsed interval set */
-var INT_SET;
+/* The parsed countdown set */
+var COUNTDOWN_SET;
 
-/* The current interva l - which interval are we on?  */
+/* The current segment - which segment are we on?  */
 var SEG_NUM;
 
-/* The remaining time for this interval */
+/* The remaining time for this segment */
 var SEG_REM_TIME;
 
 /* Whether the timer is highlighted */
@@ -156,6 +156,8 @@ var HIGHLIGHT = false;
 
 /* The time after which the timer is highlighted */
 var HIGHLIGHT_START = 5;
+
+/* The total remaining time for this countdown session */
 
 /* -------------- Shortcut function -------------- */
 function set_bg_color(id, color) {
@@ -222,6 +224,7 @@ function update_display(time, text) {
     }
     var time_str = sec_to_time_str(time);
     write_str("seg-time", time_str);
+    document.title = time_str;
 }
 
 function clear_display() {
@@ -243,7 +246,7 @@ function set_audio() {
 function play_audio() {
     audio_elem = document.getElementById("audio-element");
     audio_elem.play();
-    setTimeout(stop_audio, 1000);
+    setTimeout(stop_audio, 2000);
 
 }
 
@@ -287,11 +290,11 @@ function parse_input() {
         time_arr[1] = parseInt(time_arr[1]);
         /* Check if the conversion had been valid */
         if (isNaN(time_arr[0]) || isNaN(time_arr[1])) {
-            write_html("total-time", "<p>Error at:</p>" +
+            write_html("status-box", "<p>Error at:</p>" +
                  "<p>Line " + (i + 1) + "</p>");
-            set_font_color("total-time", "red");
+            set_font_color("status-box", "red");
             set_disabled("start-button", true);
-            INT_SET = [];
+            COUNTDOWN_SET = [];
             return;
         } else {
             /* Calculate the segment run-time in seconds */
@@ -302,12 +305,12 @@ function parse_input() {
     }
     /* Calculate the total time, if the array is not empty*/
     if (arr.length > 0) {
-        write_html("total-time", "<p>Total time:</p> <p>" +
+        write_html("status-box", "<p>Total time:</p> <p>" +
             sec_to_time_str(total) + "</p>");
-        set_font_color("total-time", "initial");
+        set_font_color("status-box", "initial");
     }
     set_disabled("start-button", false);
-    INT_SET = arr;
+    COUNTDOWN_SET = arr;
     return;
 }
 
@@ -327,7 +330,7 @@ function countdown_callback() {
         }
         SEG_NUM++;
         /* If this segment is longer than the array length */
-        if (SEG_NUM >= INT_SET.length) {
+        if (SEG_NUM >= COUNTDOWN_SET.length) {
             /* if we the loop checkbox is not checked */
             if(!document.getElementById("loop-checkbox").checked) {
                 reset_timer();
@@ -338,10 +341,10 @@ function countdown_callback() {
             }
             SEG_NUM = 0;
         }
-        SEG_REM_TIME = INT_SET[SEG_NUM][0];
+        SEG_REM_TIME = COUNTDOWN_SET[SEG_NUM][0];
     }
     /* update display, decrease the counter */
-    update_display(SEG_REM_TIME, INT_SET[SEG_NUM][1]);
+    update_display(SEG_REM_TIME, COUNTDOWN_SET[SEG_NUM][1]);
     SEG_REM_TIME--;
     COUNTDOWN_CLOCK = setTimeout(countdown_callback, 1000);
 }
@@ -361,7 +364,7 @@ function start_timer() {
         write_str("error-msg", "");
         STARTED = true;
         SEG_NUM = 0;
-        SEG_REM_TIME = INT_SET[0][0];
+        SEG_REM_TIME = COUNTDOWN_SET[0][0];
         set_disabled("input-area", true);
         set_display_border(true);
         set_bg_color("seg-text", "initial");
@@ -392,6 +395,7 @@ function startup() {
     set_audio();
     document.addEventListener('keyup', parse_input);
     set_disabled("pause-button", true);
+    parse_input();
 }
 
 </script>
@@ -480,17 +484,13 @@ where mm is the minute, ss is the second.">
                             <input type="checkbox" id="loop-checkbox"
                             name="loop-checkbox" value="true">
                         </div>
-                        <div title="Tick this box if you want a sound to be played after each interval.">
+                        <div title="Tick this box if you want a sound to be played after each segment.">
                             sound:
                             <input type="checkbox" id="audio-checkbox"
                                 name="audio-checkbox" value="true" checked="true"
                                 onchange="checkbox_toggle_display('audio-checkbox', 'audio-control')">
                         </div>
                     </div>
-                </div>
-                <div class="control-box" id="total-time">
-                    <p>Total time:</p>
-                    <p>00:00</p>
                 </div>
                 <div class="control-box" id="audio-control">
                         <p>Select a sound: </p>
@@ -503,10 +503,23 @@ where mm is the minute, ss is the second.">
                                 value="54047__guitarguy1985__buzzer.wav">
                                 Buzzer
                             </option>
+                            <option
+                                selected
+                                value="pissed_off_duck-Mike_Koenig-1752213564.wav">
+                                Duck
+                            </option>
+                            <option
+                                value="Rooster-SoundBible.com-1114473528.wav">
+                                Rooster
+                            </option>
                         </select>
                         <audio id="audio-element">
                             <source id="audio-source" src=""></source>
                         </audio>
+                </div>
+                <div class="control-box" id="status-box">
+                    <p>Total time:</p>
+                    <p>00:00</p>
                 </div>
             </div>
         </form>
