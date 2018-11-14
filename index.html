@@ -83,20 +83,36 @@ body {
 
 #input-area {
     margin: 5px;
-    width: 90%;
+    width: 36em;
     height: 20em;
 }
 
-#progress-listing {
-    width: 100%;
-    height: 19em;
+#progress-listing-container {
+    border: thin solid #aaaaaa;
+    width: 90%;
+    margin: 5px 0px 0px 0px;
+    flex-direction: row;
+/*     align-content: stretch; */
+    justify-content: space-around;
+    padding: 10px;
 }
 
-#progress-listing-container{
-    display:flex;
-    justify-content: center;
-    width: 90%;
+#progress-listing {
+    width: 30em;
+    height: 18em;
 }
+
+#progress-control-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.progress-button {
+    height: 5em;
+    width: 2em;
+}
+
 #control-container {
     display: flex;
     align-items: stretch;
@@ -195,7 +211,7 @@ function write_html(id, str) {
 
 function set_element_display(id, s) {
     if (s) {
-        document.getElementById(id).style.display = "initial";
+        document.getElementById(id).style.display = "flex";
     } else {
         document.getElementById(id).style.display = "none";
     }
@@ -371,12 +387,14 @@ function countdown_callback() {
         throw "countdown_callback(): STARTED == false";
         return;
     }
-    /* If we have reached the end of this segment */
-    if (SEG_REM_TIME < 0) {
+    if (SEG_REM_TIME == 0) {
         /* Play a sound, if the audio checkbox is checked */
         if(document.getElementById("audio-checkbox").checked) {
             play_audio();
         }
+    }
+    /* If we have reached the end of this segment */
+    if (SEG_REM_TIME < 0) {
         SEG_NUM++;
         /* If this segment is longer than the array length */
         if (SEG_NUM >= SET_ARRAY.length) {
@@ -397,7 +415,6 @@ function countdown_callback() {
             }
             SEG_NUM = 0;
         } else {
-            /* Update the progress listing */
             set_option_select(SEG_NUM);
         }
         SEG_REM_TIME = SET_ARRAY[SEG_NUM][0];
@@ -409,6 +426,7 @@ function countdown_callback() {
     set_font_color("status-box", "initial");
     TOTAL--;
     SEG_REM_TIME--;
+    progress_button_check();
     COUNTDOWN_CLOCK = setTimeout(countdown_callback, 1000);
 }
 
@@ -428,7 +446,6 @@ function start_button() {
         SEG_NUM = 0;
         SEG_REM_TIME = SET_ARRAY[0][0];
         set_option_select(0);
-        set_disabled("input-area", true);
         set_display_border(true);
         set_bg_color("seg-text", "initial");
     }
@@ -450,7 +467,6 @@ function pause_button() {
 }
 
 function reset_button() {
-    set_disabled("input-area", false);
     clearTimeout(COUNTDOWN_CLOCK);
     STARTED = false;
     clear_display();
@@ -463,6 +479,24 @@ function reset_button() {
     set_element_display("progress-listing-container", false);
 }
 
+function progress_button_check() {
+    if (SEG_NUM < 1) {
+        set_disabled("prev-button", true);
+    } else if (SEG_NUM >= SET_ARRAY.length - 1) {
+        set_disabled("next-button", true);
+    } else {
+        set_disabled("prev-button", false);
+        set_disabled("next-button", false);
+    }
+}
+
+function progress_button(p) {
+    SEG_NUM = SEG_NUM + p;
+    SEG_REM_TIME = SET_ARRAY[SEG_NUM][0];
+    set_option_select(SEG_NUM);
+    progress_button_check();
+}
+
 /* ----------------- Startup functions ------------------ */
 function startup() {
     wall_clock_callback();
@@ -473,6 +507,7 @@ function startup() {
     parse_input();
     set_element_display("finish-image", false);
     set_element_display("progress-listing-container", false);
+
 }
 
 </script>
@@ -522,20 +557,29 @@ function startup() {
 mm:ss; text string 1
 mm:ss; text string 2
 where mm is the minute, ss is the second.">
-00:02; Interval segment text 1
-00:02; Interval segment text 2
-00:02; Interval segment text 3
-00:02; Interval segment text 4
-00:02; Interval segment text 5
+00:1; Interval segment text 1
+00:1; Interval segment text 2
+00:1; Interval segment text 3
+00:1; Interval segment text 4
+00:1; Interval segment text 5
 </textarea>
 
-        <div class="control-box" id="progress-listing-container">
-            <select id="progress-listing" multiple disabled>
-            </select>
+        <div id="progress-listing-container">
+            <div id="progress-control-panel">
+                <button
+                    class="progress-button"
+                    id="prev-button"
+                    onclick="progress_button(-1)">⬆</button>
+                <button
+                    class="progress-button"
+                    id="next-button"
+                    onclick="progress_button(1)">⬇</button>
+            </div>
+            <select id="progress-listing" multiple disabled></select>
         </div>
 
         <img id="finish-image"
-            src="Bellis_perennis_macro.jpg"
+            src="Daisy-logo.png"
             height="300">
 
         <div id="control-container">
@@ -589,9 +633,12 @@ where mm is the minute, ss is the second.">
                             Buzzer
                         </option>
                         <option
-                            selected
                             value="pissed_off_duck-Mike_Koenig-1752213564.wav">
                             Duck
+                        </option>
+                        <option
+                            selected
+                            value="zebra6.wav">Zebra
                         </option>
                         <option
                             value="Rooster-SoundBible.com-1114473528.wav">
