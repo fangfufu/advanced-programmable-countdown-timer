@@ -21,7 +21,6 @@ body {
     margin-left: 10px;
 }
 
-
 #menu {
     color: #fff;
     background-color: #5995DA;  /* Blue */
@@ -34,7 +33,6 @@ body {
     display: flex;
     justify-content: flex-end;
 }
-
 
 #title {
     color: #5995DA;
@@ -67,7 +65,6 @@ body {
     text-align: center;
     justify-content: center;
 }
-
 
 #control-panel-container {
     display: flex;
@@ -119,7 +116,7 @@ body {
     width: 100%;
     flex: 1;
     background-color: #D6E9FE;
-    padding: 15px;
+    padding: 10px 15px;
 }
 
 .footer-item{
@@ -139,7 +136,7 @@ var COUNTDOWN_CLOCK;
 var STARTED = false;
 
 /* The parsed countdown set */
-var COUNTDOWN_SET;
+var SET_ARRAY;
 
 /* The current segment - which segment are we on?  */
 var SEG_NUM = 0;
@@ -155,6 +152,9 @@ var HIGHLIGHT_START = 5;
 
 /* The total remaining time for this countdown session */
 var TOTAL = 0;
+
+/* All the option element for the progress listing */
+var OPTION_ARRAY = [];
 
 /* -------------- Shortcut function -------------- */
 function set_bg_color(id, color) {
@@ -232,23 +232,23 @@ function clear_display() {
 
 /*------------------- Audio functions -----------------*/
 function set_audio() {
-    audio_elem = document.getElementById("audio-element");
+    audio_elm = document.getElementById("audio-element");
     audio_src = document.getElementById("audio-source");
     audio_src.src = document.getElementById("audio-selector").value;
-    audio_elem.load();
+    audio_elm.load();
     play_audio();
 }
 
 function play_audio() {
-    audio_elem = document.getElementById("audio-element");
-    audio_elem.play();
+    audio_elm = document.getElementById("audio-element");
+    audio_elm.play();
     setTimeout(stop_audio, 1500);
 }
 
 function stop_audio() {
-    audio_elem = document.getElementById("audio-element");
-    audio_elem.pause();
-    audio_elem.load();
+    audio_elm = document.getElementById("audio-element");
+    audio_elm.pause();
+    audio_elm.load();
 }
 
 /*-------------------- Utility functions --------------------*/
@@ -289,7 +289,7 @@ function parse_input() {
                  "<p>Line " + (i + 1) + "</p>");
             set_font_color("status-box", "red");
             set_disabled("start-button", true);
-            COUNTDOWN_SET = [];
+            SET_ARRAY = [];
             return;
         } else {
             /* Calculate the segment run-time in seconds */
@@ -307,10 +307,30 @@ function parse_input() {
         set_font_color("status-box", "initial");
     }
     set_disabled("start-button", false);
-    COUNTDOWN_SET = arr;
+    SET_ARRAY = arr;
     /* fix off-by-one error */
     TOTAL--;
     return;
+}
+
+function array_to_select() {
+    var arr = SET_ARRAY;
+    var opts = [];
+    if (arr.length < 1) {
+        throw "array_to_select(): SET_ARRAY.length < 1";
+        return;
+    }
+    var select_elm = document.createElement("select");
+    select_elm.setAttribute("multiple", true);
+
+    /* create the option nodes */
+    for (let i = 0; i < SET_ARRAY.length; i++) {
+        let textNode = document.createTextNode(
+                        sec_to_time_str(arr[i][0]) + ";" + arr[i][1]);
+        opts[i] = document.createElement("option");
+        opts[i].appendChild(textNode);
+    }
+    OPTION_ARRAY = opts;
 }
 
 /* --------------- Timer callback functions --------------- */
@@ -327,7 +347,7 @@ function countdown_callback() {
         }
         SEG_NUM++;
         /* If this segment is longer than the array length */
-        if (SEG_NUM >= COUNTDOWN_SET.length) {
+        if (SEG_NUM >= SET_ARRAY.length) {
             /* if we the loop checkbox is not checked */
             if(!document.getElementById("loop-checkbox").checked) {
                 reset_button();
@@ -345,10 +365,10 @@ function countdown_callback() {
             }
             SEG_NUM = 0;
         }
-        SEG_REM_TIME = COUNTDOWN_SET[SEG_NUM][0];
+        SEG_REM_TIME = SET_ARRAY[SEG_NUM][0];
     }
     /* update display, decrease the counter */
-    update_display(SEG_REM_TIME, COUNTDOWN_SET[SEG_NUM][1]);
+    update_display(SEG_REM_TIME, SET_ARRAY[SEG_NUM][1]);
     write_html("status-box", "<p>Remaining:</p> <p>" +
             sec_to_time_str(TOTAL) + "</p>");
     set_font_color("status-box", "initial");
@@ -371,7 +391,7 @@ function start_button() {
         /* Clear error messages */
         STARTED = true;
         SEG_NUM = 0;
-        SEG_REM_TIME = COUNTDOWN_SET[0][0];
+        SEG_REM_TIME = SET_ARRAY[0][0];
         set_disabled("input-area", true);
         set_display_border(true);
         set_bg_color("seg-text", "initial");
@@ -446,30 +466,26 @@ function startup() {
         <div class="display-item" id="seg-time"></div>
     </div>
     </div>
-
     <div id="control-panel-container">
     <div id="control-panel">
-        <form>
             <div>
                 <label id="input-label" for="input-area">
                 Please type what you need to countdown below:
                 </label>
             </div>
 
-            <div>
-                <textarea
-                    id="input-area"
-                    name="input-area"
-                    onchange="parse_input()"
-                    cols="60"
-                    rows="15"
-                    placeholder="Format:
+            <textarea
+                id="input-area"
+                name="input-area"
+                onchange="parse_input()"
+                cols="60"
+                rows="15"
+                placeholder="Format:
 mm:ss; text string 1
 mm:ss; text string 2
 where mm is the minute, ss is the second.">
 00:01; Interval segment text 1
 </textarea>
-            </div>
 
             <img id="finish-image"
                 src="Bellis_perennis_macro.jpg"
@@ -543,7 +559,6 @@ where mm is the minute, ss is the second.">
                     Please enable JavaScript.
                 </div>
             </div>
-        </form>
     </div>
     </div>
 </div>
