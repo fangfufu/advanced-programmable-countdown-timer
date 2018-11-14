@@ -146,10 +146,10 @@ var STARTED = false;
 var COUNTDOWN_SET;
 
 /* The current segment - which segment are we on?  */
-var SEG_NUM;
+var SEG_NUM = 0;
 
 /* The remaining time for this segment */
-var SEG_REM_TIME;
+var SEG_REM_TIME = 0;
 
 /* Whether the timer is highlighted */
 var HIGHLIGHT = false;
@@ -158,6 +158,7 @@ var HIGHLIGHT = false;
 var HIGHLIGHT_START = 5;
 
 /* The total remaining time for this countdown session */
+var TOTAL = 0;
 
 /* -------------- Shortcut function -------------- */
 function set_bg_color(id, color) {
@@ -246,8 +247,7 @@ function set_audio() {
 function play_audio() {
     audio_elem = document.getElementById("audio-element");
     audio_elem.play();
-    setTimeout(stop_audio, 2000);
-
+    setTimeout(stop_audio, 1500);
 }
 
 function stop_audio() {
@@ -278,8 +278,8 @@ function parse_input() {
     var str = input_area.value.trim();
     /* Split the input string to lines */
     var arr = str.split(/\r|\r\n|\n/);
-    /* The total time */
-    var total = 0;
+    /* Reset total time */
+    TOTAL = 0;
     /* Split each line into fields */
     for (let i = 0; i < arr.length; i++) {
         arr[i] = arr[i].split(";");
@@ -300,17 +300,21 @@ function parse_input() {
             /* Calculate the segment run-time in seconds */
             arr[i][0] = (time_arr[0] * 60 + time_arr[1]);
             /* Add to the total time */
-            total += arr[i][0];
+            TOTAL += arr[i][0];
+            /* fix off-by-one error */
+            TOTAL++;
         }
     }
     /* Calculate the total time, if the array is not empty*/
     if (arr.length > 0) {
         write_html("status-box", "<p>Total time:</p> <p>" +
-            sec_to_time_str(total) + "</p>");
+            sec_to_time_str(TOTAL) + "</p>");
         set_font_color("status-box", "initial");
     }
     set_disabled("start-button", false);
     COUNTDOWN_SET = arr;
+    /* fix off-by-one error */
+    TOTAL--;
     return;
 }
 
@@ -333,10 +337,12 @@ function countdown_callback() {
         if (SEG_NUM >= COUNTDOWN_SET.length) {
             /* if we the loop checkbox is not checked */
             if(!document.getElementById("loop-checkbox").checked) {
-                reset_timer();
+                reset_button();
                 set_display_border(true)
                 update_display(0, "That's it, well done! 😊");
                 set_bg_color("seg-text", "yellow");
+                /* Reset the timer's state */
+                parse_input();
                 return;
             }
             SEG_NUM = 0;
@@ -345,6 +351,10 @@ function countdown_callback() {
     }
     /* update display, decrease the counter */
     update_display(SEG_REM_TIME, COUNTDOWN_SET[SEG_NUM][1]);
+    write_html("status-box", "<p>Remaining:</p> <p>" +
+            sec_to_time_str(TOTAL) + "</p>");
+    set_font_color("status-box", "initial");
+    TOTAL--;
     SEG_REM_TIME--;
     COUNTDOWN_CLOCK = setTimeout(countdown_callback, 1000);
 }
@@ -357,7 +367,7 @@ function wall_clock_callback() {
 }
 
 /* ----------------- Button functions ------------------ */
-function start_timer() {
+function start_button() {
     /* Parse the input text box, if we haven"t. */
     if (!STARTED) {
         /* Clear error messages */
@@ -371,21 +381,26 @@ function start_timer() {
     }
     set_disabled("pause-button", false);
     set_disabled("start-button", true);
+    set_font_color("seg-text", "initial");
     /* Trigger the timer */
     countdown_callback();
+    document.removeEventListener('keyup', parse_input);
 }
 
-function pause_timer() {
+function pause_button() {
     clearTimeout(COUNTDOWN_CLOCK);
     set_disabled("pause-button", true);
     set_disabled("start-button", false);
+    set_font_color("seg-text", "red");
+    write_str("seg-text", "Paused");
 }
 
-function reset_timer() {
+function reset_button() {
     set_disabled("input-area", false);
     clearTimeout(COUNTDOWN_CLOCK);
     STARTED = false;
     clear_display();
+    document.addEventListener('keyup', parse_input);
 }
 
 /* ----------------- Startup functions ------------------ */
@@ -414,7 +429,7 @@ function startup() {
 -->
     </div>
 
-    <div id="current-time">Please turn on Javascript.</div>
+    <div id="current-time">Please enable JavaScript.</div>
 
     </div>
 
@@ -459,21 +474,21 @@ where mm is the minute, ss is the second.">
                         <button
                             id="start-button"
                             type="button"
-                            onclick="start_timer()"
+                            onclick="start_button()"
                             class="control-button">
                             Start
                         </button>
                         <button
                             id="pause-button"
                             type="button"
-                            onclick="pause_timer()"
+                            onclick="pause_button()"
                             class="control-button">
                             Pause
                         </button>
                         <button
                             id="reset-button"
                             type="button"
-                            onclick="reset_timer()"
+                            onclick="reset_button()"
                             class="control-button">
                             Reset
                         </button>
@@ -518,8 +533,7 @@ where mm is the minute, ss is the second.">
                         </audio>
                 </div>
                 <div class="control-box" id="status-box">
-                    <p>Total time:</p>
-                    <p>00:00</p>
+                    Please enable JavaScript.
                 </div>
             </div>
         </form>
