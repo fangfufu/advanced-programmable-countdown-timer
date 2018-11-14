@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<title>Timer</title>
+<title>APC Timer</title>
 <style>
 * {
     margin: 0;
@@ -183,7 +183,7 @@ var HIGHLIGHT = false;
 var HIGHLIGHT_START = 5;
 
 /* The total remaining time for this countdown session */
-var TOTAL = 0;
+var TOTAL_TIME = 0;
 
 /* All the option element for the progress listing */
 var OPTION_ARRAY = [];
@@ -306,7 +306,7 @@ function parse_input() {
     /* Split the input string to lines */
     var arr = str.split(/\r|\r\n|\n/);
     /* Reset total time */
-    TOTAL = 0;
+    TOTAL_TIME = 0;
     /* Split each line into fields */
     for (let i = 0; i < arr.length; i++) {
         arr[i] = arr[i].split(";");
@@ -328,20 +328,20 @@ function parse_input() {
             /* Calculate the segment run-time in seconds */
             arr[i][0] = (time_arr[0] * 60 + time_arr[1]);
             /* Add to the total time */
-            TOTAL += arr[i][0];
+            TOTAL_TIME += arr[i][0];
             /* fix off-by-one error */
-            TOTAL++;
+            TOTAL_TIME++;
         }
     }
     SET_ARRAY = arr;
 
     /* fix off-by-one error */
-    TOTAL--;
+    TOTAL_TIME--;
 
     /* Calculate the total time, if the array is not empty*/
     if (arr.length > 0) {
         write_html("status-box", "<p>Total time:</p> <p>" +
-            sec_to_time_str(TOTAL) + "</p>");
+            sec_to_time_str(TOTAL_TIME) + "</p>");
         set_font_color("status-box", "initial");
     }
 
@@ -422,9 +422,9 @@ function countdown_callback() {
     /* update display, decrease the counter */
     update_display(SEG_REM_TIME, SET_ARRAY[SEG_NUM][1]);
     write_html("status-box", "<p>Remaining:</p> <p>" +
-            sec_to_time_str(TOTAL) + "</p>");
+            sec_to_time_str(TOTAL_TIME) + "</p>");
     set_font_color("status-box", "initial");
-    TOTAL--;
+    TOTAL_TIME--;
     SEG_REM_TIME--;
     progress_button_check();
     COUNTDOWN_CLOCK = setTimeout(countdown_callback, 1000);
@@ -493,6 +493,11 @@ function progress_button_check() {
 function progress_button(p) {
     SEG_NUM = SEG_NUM + p;
     SEG_REM_TIME = SET_ARRAY[SEG_NUM][0];
+    TOTAL_TIME = 0;
+    for (let i = SEG_NUM; i < SET_ARRAY.length; i++) {
+        TOTAL_TIME += SET_ARRAY[i][0] + 1;
+    }
+    TOTAL_TIME--;
     set_option_select(SEG_NUM);
     progress_button_check();
 }
@@ -507,7 +512,6 @@ function startup() {
     parse_input();
     set_element_display("finish-image", false);
     set_element_display("progress-listing-container", false);
-
 }
 
 </script>
@@ -557,11 +561,20 @@ function startup() {
 mm:ss; text string 1
 mm:ss; text string 2
 where mm is the minute, ss is the second.">
-00:1; Interval segment text 1
-00:1; Interval segment text 2
-00:1; Interval segment text 3
-00:1; Interval segment text 4
-00:1; Interval segment text 5
+5:00; Warm up
+5:00; 5/10
+5:00; 6/10
+5:00; 7/10
+15:00; Run
+1:00; 1/10
+5:00; 5/10
+5:00; 6/10
+5:00; 7/10
+15:00; Run
+5:00; 7/10
+5:00; 6/10
+5:00; 5/10
+5:00; Cool down
 </textarea>
 
         <div id="progress-listing-container">
