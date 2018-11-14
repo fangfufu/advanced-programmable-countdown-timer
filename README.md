@@ -20,6 +20,5 @@ whether the current cycling captain would use it, but if I am running a
 turbo session, I would use it.
 
 ## TODO:
-- progress listing
 - previous segment / next segment,
 - server-side scripting.
