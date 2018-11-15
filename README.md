@@ -20,7 +20,8 @@ whether the current cycling captain would use it, but if I am running a
 turbo session, I would use it.
 
 ## TODO:
-- server-side scripting.
+- Server-side scripting, so end users can save their countdown timer settings 
+to a server. 
 
 ## LICENSE
 The webpage itself is licensed under GPLv3.
