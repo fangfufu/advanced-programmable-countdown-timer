@@ -46,4 +46,4 @@ The resource files are licensed as the following:
   - Eas Beep-SoundBible.com-238025417.mp3 is licensed under [Sampling Plus 1.0](https://creativecommons.org/licenses/sampling+/1.0/) by [Jobro](http://soundbible.com/1365-Eas-Beep.html). 
   - pissed_off_duck-Mike_Koenig-1752213564.wav is licensed under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) by [Mike Koenig](http://soundbible.com/1859-Pissed-Off-Duck.html)
   - Rooster-SoundBible.com-1114473528.wav is licensed under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) by [Mike Koenig](http://soundbible.com/1510-Rooster.html).
-  - is licensed under [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/deed.en) by [Alvesgaspar](https://commons.wikimedia.org/wiki/File:Bellis_March_2014-1.jpg).
+  - Bellis_March_2014-1.jpg is licensed under [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/deed.en) by [Alvesgaspar](https://commons.wikimedia.org/wiki/File:Bellis_March_2014-1.jpg).
