@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<title>APC Timer</title>
+<title>Countdown Timer</title>
 <style>
 * {
     margin: 0;
@@ -87,12 +87,11 @@ body {
     height: 20em;
 }
 
-#progress-listing-container {
+#progress-control-container {
+    display: flex;
     border: thin solid #aaaaaa;
     width: 90%;
     margin: 5px 0px 0px 0px;
-    flex-direction: row;
-/*     align-content: stretch; */
     justify-content: space-around;
     padding: 10px;
 }
@@ -329,14 +328,9 @@ function parse_input() {
             arr[i][0] = (time_arr[0] * 60 + time_arr[1]);
             /* Add to the total time */
             TOTAL_TIME += arr[i][0];
-            /* fix off-by-one error */
-            TOTAL_TIME++;
         }
     }
     SET_ARRAY = arr;
-
-    /* fix off-by-one error */
-    TOTAL_TIME--;
 
     /* Calculate the total time, if the array is not empty*/
     if (arr.length > 0) {
@@ -356,7 +350,7 @@ function array_to_select() {
     var arr = SET_ARRAY;
     var opts = [];
     if (arr.length < 1) {
-        throw "array_to_select(): SET_ARRAY.length < 1";
+        alert("array_to_select(): SET_ARRAY.length < 1");
         return;
     }
 
@@ -384,17 +378,18 @@ function set_option_select(n) {
 /* --------------- Timer callback functions --------------- */
 function countdown_callback() {
     if (!STARTED) {
-        throw "countdown_callback(): STARTED == false";
+        alert("countdown_callback(): STARTED == false");
         return;
     }
-    if (SEG_REM_TIME == 0) {
+
+    update_display(SEG_REM_TIME, SET_ARRAY[SEG_NUM][1]);
+
+    /* If we have reached the end of this segment */
+    if (SEG_REM_TIME < 1) {
         /* Play a sound, if the audio checkbox is checked */
         if(document.getElementById("audio-checkbox").checked) {
             play_audio();
         }
-    }
-    /* If we have reached the end of this segment */
-    if (SEG_REM_TIME < 0) {
         SEG_NUM++;
         /* If this segment is longer than the array length */
         if (SEG_NUM >= SET_ARRAY.length) {
@@ -419,8 +414,6 @@ function countdown_callback() {
         }
         SEG_REM_TIME = SET_ARRAY[SEG_NUM][0];
     }
-    /* update display, decrease the counter */
-    update_display(SEG_REM_TIME, SET_ARRAY[SEG_NUM][1]);
     write_html("status-box", "<p>Remaining:</p> <p>" +
             sec_to_time_str(TOTAL_TIME) + "</p>");
     set_font_color("status-box", "initial");
@@ -441,7 +434,7 @@ function wall_clock_callback() {
 function start_button() {
     /* Parse the input text box, if we haven"t. */
     if (!STARTED) {
-        /* Clear error messages */
+        parse_input();
         STARTED = true;
         SEG_NUM = 0;
         SEG_REM_TIME = SET_ARRAY[0][0];
@@ -454,8 +447,10 @@ function start_button() {
     set_font_color("seg-text", "initial");
     countdown_callback();
     document.removeEventListener('keyup', parse_input);
-    set_element_display("progress-listing-container", true);
+    set_element_display("progress-control-label", true);
+    set_element_display("progress-control-container", true);
     set_element_display("input-area", false);
+    set_element_display("input-label", false);
 }
 
 function pause_button() {
@@ -476,17 +471,20 @@ function reset_button() {
     set_element_display("input-area", true);
     set_element_display("input-label", true);
     set_element_display("finish-image", false);
-    set_element_display("progress-listing-container", false);
+    set_element_display("progress-control-label", false);
+    set_element_display("progress-control-container", false);
+    parse_input();
+    document.title = "Countdown Timer"
 }
 
 function progress_button_check() {
+    set_disabled("prev-button", false);
+    set_disabled("next-button", false);
     if (SEG_NUM < 1) {
         set_disabled("prev-button", true);
-    } else if (SEG_NUM >= SET_ARRAY.length - 1) {
+    }
+    if (SEG_NUM >= SET_ARRAY.length - 1) {
         set_disabled("next-button", true);
-    } else {
-        set_disabled("prev-button", false);
-        set_disabled("next-button", false);
     }
 }
 
@@ -495,9 +493,8 @@ function progress_button(p) {
     SEG_REM_TIME = SET_ARRAY[SEG_NUM][0];
     TOTAL_TIME = 0;
     for (let i = SEG_NUM; i < SET_ARRAY.length; i++) {
-        TOTAL_TIME += SET_ARRAY[i][0] + 1;
+        TOTAL_TIME += SET_ARRAY[i][0];
     }
-    TOTAL_TIME--;
     set_option_select(SEG_NUM);
     progress_button_check();
 }
@@ -511,7 +508,8 @@ function startup() {
     set_disabled("pause-button", true);
     parse_input();
     set_element_display("finish-image", false);
-    set_element_display("progress-listing-container", false);
+    set_element_display("progress-control-label", false);
+    set_element_display("progress-control-container", false);
 }
 
 </script>
@@ -549,10 +547,9 @@ function startup() {
 
     <div id="control-panel-container">
     <div id="control-panel">
-        <label id="input-label" for="input-area">
-            Please type what you need to countdown below:
-        </label>
-
+        <div id="input-label">
+            Please type in the countdown segment in the text box below:
+        </div>
         <textarea
             id="input-area"
             name="input-area"
@@ -561,23 +558,24 @@ function startup() {
 mm:ss; text string 1
 mm:ss; text string 2
 where mm is the minute, ss is the second.">
-5:00; Warm up
-5:00; 5/10
-5:00; 6/10
-5:00; 7/10
+10:00; Warm up
+4:00; 8/10
+2:00; 4/10
+4:00; 8/10
 15:00; Run
-1:00; 1/10
-5:00; 5/10
-5:00; 6/10
-5:00; 7/10
+4:00; 8/10
+2:00; 4/10
+4:00; 8/10
 15:00; Run
-5:00; 7/10
-5:00; 6/10
-5:00; 5/10
-5:00; Cool down
+4:00; 8/10
+2:00; 4/10
+4:00; 8/10
+10:00; Cool down
 </textarea>
-
-        <div id="progress-listing-container">
+        <div id="progress-control-label">
+            You can change the countdown segment using the arrow buttons.
+        </div>
+        <div id="progress-control-container">
             <div id="progress-control-panel">
                 <button
                     class="progress-button"
@@ -651,9 +649,6 @@ where mm is the minute, ss is the second.">
                         </option>
                         <option
                             selected
-                            value="zebra6.wav">Zebra
-                        </option>
-                        <option
                             value="Rooster-SoundBible.com-1114473528.wav">
                             Rooster
                         </option>
