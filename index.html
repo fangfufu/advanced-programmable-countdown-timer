@@ -155,6 +155,22 @@ body {
 
 #copyright {
     text-align: right;
+    flex: 4;
+}
+
+#source {
+    flex: 1;
+}
+
+.link-button {
+    background-color: #68b1fe;
+    border: thin solid #004896;
+    color: white;
+    padding: 5px 10px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
 }
 
 </style>
@@ -590,7 +606,7 @@ where mm is the minute, ss is the second.">
         </div>
 
         <img id="finish-image"
-            src="finish-image.png"
+            src="Bellis_March_2014-1.jpg"
             height="300">
 
         <div id="control-container">
@@ -666,8 +682,14 @@ where mm is the minute, ss is the second.">
 </div>
 
 <div id="footer">
+    <div class="footer-item" id="source">
+    <a href="https://github.com/fangfufu/advanced-programmable-countdown-timer">
+        <button class="link-button">Source</button>
+    </a>
+    </div>
+
     <div class="footer-item" id="copyright">
-    Created by Fufu Fang, fangfufu@fangfufu.co.uk
+    Licensed under GPLv3
     </div>
 </div>
 
