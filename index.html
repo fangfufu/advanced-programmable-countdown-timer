@@ -2,555 +2,59 @@
 
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<title>Countdown Timer</title>
-<style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    display: flex;
-    min-height: 100vh;
-    flex-direction: column;
-}
-
-.menu-items {
-    margin-left: 10px;
-}
-
-#menu {
-    color: #fff;
-    background-color: #5995DA;  /* Blue */
-    padding: 5px 10px;
-    display: flex;
-    justify-content: space-between;
-}
-
-#links {
-    display: flex;
-    justify-content: flex-end;
-}
-
-#title {
-    color: #5995DA;
-    background-color: #D6E9FE;
-    display: flex;
-    font-size: 1.5em;
-    color: black;
-    justify-content: center;
-}
-
-#content {
-    display: flex;
-    flex-direction: column;
-    text-align: center;
-}
-
-#display-container {
-    display: flex;
-    justify-content: center;
-}
-
-#display {
-    padding: 10px;
-    width: 550px;
-    margin: 5px;
-}
-
-.display-item {
-    font-size: 2.5em;
-    text-align: center;
-    justify-content: center;
-}
-
-#control-panel-container {
-    display: flex;
-    justify-content: center;
-}
-
-#control-panel {
-    width: 550px;
-    border: thin solid #000000;
-    margin: 5px;
-    padding: 5px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-#input-area {
-    margin: 5px;
-    width: 36em;
-    height: 20em;
-}
-
-#progress-control-container {
-    display: flex;
-    border: thin solid #aaaaaa;
-    width: 90%;
-    margin: 5px 0px 0px 0px;
-    justify-content: space-around;
-    padding: 10px;
-}
-
-#progress-listing {
-    width: 30em;
-    height: 18em;
-}
-
-#progress-control-panel {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-}
-
-.progress-button {
-    height: 5em;
-    width: 2em;
-}
-
-#control-container {
-    display: flex;
-    align-items: stretch;
-    justify-content: space-around;
-}
-
-.control-box {
-    border: thin solid #aaaaaa;
-    padding: 10px;
-    margin: 10px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-#checkbox-container {
-    display: flex;
-    justify-content: space-around;
-}
-
-.control-button {
-    margin: 5px;
-    padding: 5px;
-}
-
-#footer {
-    display:flex;
-    position: fixed;
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    flex: 1;
-    background-color: #D6E9FE;
-    padding: 10px 15px;
-}
-
-.footer-item{
-    flex: 1;
-}
-
-#copyright {
-    text-align: right;
-    flex: 4;
-}
-
-#source {
-    flex: 1;
-}
-
-.link-button {
-    background-color: #68b1fe;
-    border: thin solid #004896;
-    color: white;
-    padding: 5px 10px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-}
-
-</style>
-
-<script>
-/* Triggers the callback function to update the countdown */
-var COUNTDOWN_CLOCK;
-
-/* Check if we have already parsed the countdown set */
-var STARTED = false;
-
-/* The parsed countdown set */
-var SET_ARRAY;
-
-/* The current segment - which segment are we on?  */
-var SEG_NUM = 0;
-
-/* The remaining time for this segment */
-var SEG_REM_TIME = 0;
-
-/* Whether the timer is highlighted */
-var HIGHLIGHT = false;
-
-/* The time after which the timer is highlighted */
-var HIGHLIGHT_START = 5;
-
-/* The total remaining time for this countdown session */
-var TOTAL_TIME = 0;
-
-/* All the option element for the progress listing */
-var OPTION_ARRAY = [];
-
-/* -------------- Shortcut function -------------- */
-function set_bg_color(id, color) {
-    document.getElementById(id).style.backgroundColor = color;
-}
-
-function set_disabled(id, s) {
-    document.getElementById(id).disabled = s;
-}
-
-function set_font_color(id, color) {
-    document.getElementById(id).style.color = color;
-}
-
-function write_str(id, str) {
-    document.getElementById(id).textContent = str;
-}
-
-function write_html(id, str) {
-    document.getElementById(id).innerHTML = str;
-}
-
-function set_element_display(id, s) {
-    if (s) {
-        document.getElementById(id).style.display = "flex";
-    } else {
-        document.getElementById(id).style.display = "none";
-    }
-}
-
-function checkbox_toggle_display(ce, id) {
-    set_element_display(id, document.getElementById(ce).checked);
-}
-
-/* --------------- Display related functions -------------- */
-function set_display_border(s) {
-    if (s) {
-        document.getElementById("display").style.border = "thin solid #000000";
-    } else {
-        document.getElementById("display").style.border = "";
-    }
-}
-
-function set_highlight(s) {
-    if (s) {
-        set_bg_color("seg-time", "yellow");
-        HIGHLIGHT = true;
-    } else {
-        set_bg_color("seg-time", "initial");
-        HIGHLIGHT = false;
-    }
-}
-
-function update_display(time, text) {
-    write_str("seg-text", text);
-    if (time < HIGHLIGHT_START) {
-        if (!HIGHLIGHT) {
-            set_highlight(true);
-        } else {
-            set_highlight(false);
-        }
-    } else {
-        set_highlight(false);
-    }
-    var time_str = sec_to_time_str(time);
-    write_str("seg-time", time_str);
-    document.title = time_str;
-}
-
-function clear_display() {
-    write_str("seg-text", "");
-    write_str("seg-time", "");
-    set_display_border(false);
-}
-
-/*------------------- Audio functions -----------------*/
-function set_audio() {
-    audio_elm = document.getElementById("audio-element");
-    audio_src = document.getElementById("audio-source");
-    audio_src.src = document.getElementById("audio-selector").value;
-    audio_elm.load();
-    play_audio();
-}
-
-function play_audio() {
-    audio_elm = document.getElementById("audio-element");
-    audio_elm.play();
-    setTimeout(stop_audio, 1500);
-}
-
-function stop_audio() {
-    audio_elm = document.getElementById("audio-element");
-    audio_elm.pause();
-    audio_elm.load();
-}
-
-/*-------------------- Utility functions --------------------*/
-function sec_to_time_str(time) {
-    var min = Math.floor(time / 60);
-    var sec = time % 60;
-    var min_str = min.toString();
-    var sec_str = sec.toString();
-    if (min < 10) {
-        min_str = "0" + min_str;
-    }
-    if (sec < 10) {
-        sec_str = "0" + sec_str;
-    }
-    var time_str = min_str + ":" + sec_str;
-    return time_str;
-}
-
-/* Tokenise the input text */
-function parse_input() {
-    var input_area = document.getElementById("input-area");
-    var str = input_area.value.trim();
-    /* Split the input string to lines */
-    var arr = str.split(/\r|\r\n|\n/);
-    /* Reset total time */
-    TOTAL_TIME = 0;
-    /* Split each line into fields */
-    for (let i = 0; i < arr.length; i++) {
-        arr[i] = arr[i].split(";");
-        /* Split the first field into times */
-        let time_arr = arr[i][0].split(":");
-        /* Explicitly convert string into int */
-        time_arr[0] = parseInt(time_arr[0]);
-        time_arr[1] = parseInt(time_arr[1]);
-        /* Check if the conversion had been valid */
-        if (isNaN(time_arr[0]) || isNaN(time_arr[1])) {
-            write_html("status-box", "<p>Error at:</p>" +
-                 "<p>Line " + (i + 1) + "</p>");
-            set_font_color("status-box", "red");
-            set_disabled("start-button", true);
-            SET_ARRAY = [];
-            OPTION_ARRAY = [];
-            return;
-        } else {
-            /* Calculate the segment run-time in seconds */
-            arr[i][0] = (time_arr[0] * 60 + time_arr[1]);
-            /* Add to the total time */
-            TOTAL_TIME += arr[i][0];
-        }
-    }
-    SET_ARRAY = arr;
-
-    /* Calculate the total time, if the array is not empty*/
-    if (arr.length > 0) {
-        write_html("status-box", "<p>Total time:</p> <p>" +
-            sec_to_time_str(TOTAL_TIME) + "</p>");
-        set_font_color("status-box", "initial");
-    }
-
-    set_disabled("start-button", false);
-    array_to_select();
-}
-
-/* I am not doing any manual garbage collection here, good luck, browser */
-function array_to_select() {
-    var select_elm = document.getElementById("progress-listing");
-    select_elm.innerHTML = "";
-    var arr = SET_ARRAY;
-    var opts = [];
-    if (arr.length < 1) {
-        alert("array_to_select(): SET_ARRAY.length < 1");
-        return;
-    }
-
-    /* create the option nodes */
-    for (let i = 0; i < SET_ARRAY.length; i++) {
-        let textNode = document.createTextNode(
-                        sec_to_time_str(arr[i][0]) + " - " + arr[i][1]);
-        opts[i] = document.createElement("option");
-        opts[i].appendChild(textNode);
-        select_elm.appendChild(opts[i]);
-    }
-    OPTION_ARRAY = opts;
-}
-
-/* Select the right option element */
-function set_option_select(n) {
-    var arr = OPTION_ARRAY;
-    for (let i = 0; i < OPTION_ARRAY.length; i++) {
-        OPTION_ARRAY[i].removeAttribute("selected");
-    }
-    OPTION_ARRAY[n].setAttribute("selected", true);
-    OPTION_ARRAY[n].scrollIntoView();
-}
-
-/* --------------- Timer callback functions --------------- */
-function countdown_callback() {
-    if (!STARTED) {
-        alert("countdown_callback(): STARTED == false");
-        return;
-    }
-
-    update_display(SEG_REM_TIME, SET_ARRAY[SEG_NUM][1]);
-
-    /* If we have reached the end of this segment */
-    if (SEG_REM_TIME < 1) {
-        /* Play a sound, if the audio checkbox is checked */
-        if(document.getElementById("audio-checkbox").checked) {
-            play_audio();
-        }
-        SEG_NUM++;
-        /* If this segment is longer than the array length */
-        if (SEG_NUM >= SET_ARRAY.length) {
-            /* if we the loop checkbox is not checked */
-            if(!document.getElementById("loop-checkbox").checked) {
-                reset_button();
-                set_display_border(true)
-                update_display(0, "That's it, well done! 😊");
-                set_bg_color("seg-text", "yellow");
-                /* Reset the timer's state */
-                parse_input();
-                set_element_display("input-area", false);
-                set_element_display("input-label", false);
-                set_element_display("finish-image", true);
-                set_disabled("pause-button", true);
-                set_disabled("start-button", true);
-                return;
-            }
-            SEG_NUM = 0;
-        } else {
-            set_option_select(SEG_NUM);
-        }
-        SEG_REM_TIME = SET_ARRAY[SEG_NUM][0];
-    }
-    write_html("status-box", "<p>Remaining:</p> <p>" +
-            sec_to_time_str(TOTAL_TIME) + "</p>");
-    set_font_color("status-box", "initial");
-    TOTAL_TIME--;
-    SEG_REM_TIME--;
-    progress_button_check();
-    COUNTDOWN_CLOCK = setTimeout(countdown_callback, 1000);
-}
-
-function wall_clock_callback() {
-    var t = new Date();
-    write_str("current-time", "Current Time: " +
-                t.toLocaleTimeString("en-GB"));
-    setTimeout(wall_clock_callback, 500);
-}
-
-/* ----------------- Button functions ------------------ */
-function start_button() {
-    /* Parse the input text box, if we haven"t. */
-    if (!STARTED) {
-        parse_input();
-        STARTED = true;
-        SEG_NUM = 0;
-        SEG_REM_TIME = SET_ARRAY[0][0];
-        set_option_select(0);
-        set_display_border(true);
-        set_bg_color("seg-text", "initial");
-    }
-    set_disabled("pause-button", false);
-    set_disabled("start-button", true);
-    set_font_color("seg-text", "initial");
-    countdown_callback();
-    document.removeEventListener('keyup', parse_input);
-    set_element_display("progress-control-label", true);
-    set_element_display("progress-control-container", true);
-    set_element_display("input-area", false);
-    set_element_display("input-label", false);
-}
-
-function pause_button() {
-    clearTimeout(COUNTDOWN_CLOCK);
-    set_disabled("pause-button", true);
-    set_disabled("start-button", false);
-    set_font_color("seg-text", "red");
-    write_str("seg-text", "Paused");
-}
-
-function reset_button() {
-    clearTimeout(COUNTDOWN_CLOCK);
-    STARTED = false;
-    clear_display();
-    document.addEventListener('keyup', parse_input);
-    set_disabled("pause-button", true);
-    set_disabled("start-button", false);
-    set_element_display("input-area", true);
-    set_element_display("input-label", true);
-    set_element_display("finish-image", false);
-    set_element_display("progress-control-label", false);
-    set_element_display("progress-control-container", false);
-    parse_input();
-    document.title = "Countdown Timer"
-}
-
-function progress_button_check() {
-    set_disabled("prev-button", false);
-    set_disabled("next-button", false);
-    if (SEG_NUM < 1) {
-        set_disabled("prev-button", true);
-    }
-    if (SEG_NUM >= SET_ARRAY.length - 1) {
-        set_disabled("next-button", true);
-    }
-}
-
-function progress_button(p) {
-    SEG_NUM = SEG_NUM + p;
-    SEG_REM_TIME = SET_ARRAY[SEG_NUM][0];
-    TOTAL_TIME = 0;
-    for (let i = SEG_NUM; i < SET_ARRAY.length; i++) {
-        TOTAL_TIME += SET_ARRAY[i][0];
-    }
-    set_option_select(SEG_NUM);
-    progress_button_check();
-}
-
-/* ----------------- Startup functions ------------------ */
-function startup() {
-    wall_clock_callback();
-    checkbox_toggle_display('audio-checkbox', 'audio-control');
-    set_audio();
-    document.addEventListener('keyup', parse_input);
-    set_disabled("pause-button", true);
-    parse_input();
-    set_element_display("finish-image", false);
-    set_element_display("progress-control-label", false);
-    set_element_display("progress-control-container", false);
-}
-
-</script>
-
+    <meta charset="UTF-8"/>
+    <title>Countdown Timer</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <script src="script.js"></script>
 </head>
 
 <body onload="startup()">
 
-    <div id="menu">
-
-    <div id="links">
-<!--        <div class="menu-items">Login</div>
-        <div class="menu-items">Sign Up</div>
-        <div class="menu-items">Help</div>
-        <div class="menu-items">About</div>
--->
+    <!--The Video question-->
+    <div id="question" class="modal">
+        <div class="modal-content">
+            <div id="modal-header">
+            <h2>Situational Judgement Test</h2>
+            </div>
+            <div id="modal-body">
+            <p><b>Please complete the Situational Judgement Test before continuing. </b></p>
+            <br>
+            <p>The author of this countdown timer would like to watch Youtube videos
+            in another window, what would you do?</p>
+            <br>
+            <input type="radio"
+                name="youtube_choice">
+                Let's watch Youtube in another window. <br>
+            <input type="radio"
+                name="youtube_choice"
+                id="youtube_choice"
+                checked="true">
+                Let's avoid Youtube, as it is a distraction. <br>
+            </div>
+            <div id="modal-footer">
+                <button
+                    class="link-button"
+                    onclick="close_question_display()">
+                    Submit
+                </button>
+            </div>
+        </div>
     </div>
 
-    <div id="current-time">Please enable JavaScript.</div>
+<div id="menu">
+
+    <div id="current-time">
 
     </div>
 
-<div id="title">
-    Advanced Programmable Countdown Timer
+    <div id="title">
+        Advanced Programmable Countdown Timer
+    </div>
+
+    <div id="remaining-time">
+    </div>
 </div>
+
 
 <div id="content">
 
@@ -602,6 +106,9 @@ where mm is the minute, ss is the second.">
                     id="next-button"
                     onclick="progress_button(1)">⬇</button>
             </div>
+            <iframe id="youtube-video-iframe"
+            frameborder="0" allow="autoplay" allowfullscreen
+            onmousemove="video_mode(false)"></iframe>
             <select id="progress-listing" multiple disabled></select>
         </div>
 
@@ -644,7 +151,7 @@ where mm is the minute, ss is the second.">
                         sound:
                         <input type="checkbox" id="audio-checkbox"
                             name="audio-checkbox" value="true" checked="true"
-                            onchange="checkbox_toggle_display('audio-checkbox', 'audio-control')">
+                            onchange="set_audio_display()">
                     </div>
                 </div>
             </div>
@@ -688,9 +195,19 @@ where mm is the minute, ss is the second.">
     </a>
     </div>
 
-    <div class="footer-item" id="copyright">
-    Licensed under GPLv3
+    <div class="footer-item" id="youtube-video-status">
+        <div>
+<!--            Disable video:
+            <input type="checkbox" id="youtube-status-checkbox"
+                name="youtube-status-checkbox" value="true"
+                onchange="disable_video_mode()">-->
+        </div>
     </div>
+
+    <div class="footer-item" id="copyright">
+        Licensed under GPLv3
+    </div>
+
 </div>
 
 </body>

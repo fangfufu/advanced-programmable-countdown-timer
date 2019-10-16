@@ -1,0 +1,261 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+}
+
+.menu-items {
+    margin-left: 10px;
+}
+
+#menu {
+    color: #fff;
+    background-color: #5995DA;  /* Blue */
+    padding: 5px 10px;
+    display: flex;
+    justify-content: space-between;
+}
+
+#remaining-time {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-begin;
+}
+
+#title {
+    color: #5995DA;
+/*     background-color: #D6E9FE; */
+    display: flex;
+    font-size: 1.5em;
+    color: white;
+    justify-content: center;
+    flex: 2;
+}
+
+#current-time {
+    flex: 1;
+    align-items: center;
+    justify-content: flex-end;
+    display: flex;
+}
+
+#content {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+}
+
+#display-container {
+    display: flex;
+    justify-content: center;
+}
+
+#display {
+    padding: 10px;
+    width: 550px;
+    margin: 5px;
+}
+
+.display-item {
+    font-size: 2.5em;
+    text-align: center;
+    justify-content: center;
+}
+
+#control-panel-container {
+    display: flex;
+    justify-content: center;
+}
+
+#control-panel {
+    width: 100%;
+    border: thin solid #000000;
+    margin: 5px;
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#input-area {
+    margin: 5px;
+    width: 36em;
+    height: 20em;
+}
+
+#progress-control-container {
+    display: flex;
+    border: thin solid #aaaaaa;
+    width: 100%;
+    margin: 5px 0px 0px 0px;
+    justify-content: center;
+    padding: 10px;
+    align-items: center;
+}
+
+#progress-display {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+#progress-listing {
+    height: 18em;
+    flex: 15;
+    max-width: 30em;
+}
+
+#youtube-video-iframe {
+    flex: 85;
+    height: 440px;
+}
+
+
+#progress-control-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.progress-button {
+    height: 5em;
+    width: 2em;
+}
+
+#control-container {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-around;
+}
+
+.control-box {
+    border: thin solid #aaaaaa;
+    padding: 10px;
+    margin: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#checkbox-container {
+    display: flex;
+    justify-content: space-around;
+}
+
+.control-button {
+    margin: 5px;
+    padding: 5px;
+}
+
+#footer {
+    display:flex;
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    flex: 1;
+    background-color: #D6E9FE;
+    padding: 10px 15px;
+}
+
+.footer-item{
+    display: flex;
+    flex: 1;
+    justify-content: space-between;
+}
+
+#copyright {
+    justify-content: flex-end;
+}
+
+#youtube-video-status {
+    justify-content: center;
+}
+
+.link-button {
+    background-color: #68b1fe;
+    border: thin solid #004896;
+    color: white;
+    padding: 5px 10px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+}
+
+/* The Modal (background) */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    padding-top: 100px; /* Location of the box */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+/* Modal Content */
+.modal-content {
+    position: relative;
+    background-color: #fefefe;
+    margin: auto;
+    padding: 0;
+    border: 1px solid #888;
+    width: 50%;
+    height: 70%;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    -webkit-animation-name: animatetop;
+    -webkit-animation-duration: 0.4s;
+    animation-name: animatetop;
+    animation-duration: 0.4s;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Add Animation */
+@-webkit-keyframes animatetop {
+    from {top:-300px; opacity:0}
+    to {top:0; opacity:1}
+}
+
+@keyframes animatetop {
+    from {top:-300px; opacity:0}
+    to {top:0; opacity:1}
+}
+
+#modal-header {
+    padding: 2px 16px;
+    background-color: #5995DA;
+    color: white;
+    display: flex;
+    flex: 1;
+    justify-content: space-around;
+    align-items: center;
+}
+
+#modal-body {
+    padding: 2px 16px;
+    flex: 6;
+}
+
+#modal-footer {
+    padding: 2px 16px;
+    background-color: #D6E9FE;
+    color: white;
+    display: flex;
+    flex: 1;
+    justify-content: space-around;
+    align-items: center;
+}
