@@ -302,7 +302,8 @@ function countdown_callback() {
             if(!document.getElementById("loop-checkbox").checked) {
                 reset_button();
                 set_display_border(true)
-                update_display(0, "That's it, well done! 😊");
+                update_display(0,
+                               "You cannot win against a hippo in a triathlon!");
                 set_bg_color("seg-text", "yellow");
                 /* Reset the timer's state */
                 parse_input();
