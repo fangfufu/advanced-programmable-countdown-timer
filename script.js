@@ -30,7 +30,13 @@ var HIPPO_FACT = [
 "Female hippos give birth every two years, usually to a single calf.",
 "In the wild hippos live for around 40 years.",
 "Hippos can run faster than humans - up to 30 miles per hour.",
-"Adult hippos move at speeds up to 8 km/h (5 mph) in water."
+"Adult hippos move at speeds up to 8 km/h (5 mph) in water.",
+"Male hippos can weigh more than 6,000 pounds.",
+"Females hippos top out at around 3,000 pounds.",
+"When the hippo submerges, the nostrils close to keep out water.",
+"A hippo can eat up to 90 pounds of grass in one night!",
+"Hippos are so aquatic that females even give birth in the water!",
+"Hippo babies weigh 50 to 100 pounds."
 ]
 
 var HIPPO_IMG_LIST = [
