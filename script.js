@@ -9,10 +9,43 @@ var VIDEO_LIST = [
 "wZNJeqseqUg", /* RBC Super League Triathlon Jersey: Men's Final */
 "aHR0H0XU7sM", /* Super League Triathlon Mallorca: Men's Sprint Enduro */
 "qpH7LYt37pQ", /* Men's Jersey Triple Mix Jersey 2018 FULL */
+"WW2Mulapp3o", /* RBC Super League Triathlon Jersey: Men's Semi-Final A */
+"wV0OXxhq5qU", /* RBC Super League Triathlon Jersey: Men's Semi-Final B */
+
 "Sg9BgP1D704", /* RBC Super League Triathlon Jersey: Women's Final*/
 "Nu1bh7g2mUA", /* Super League Triathlon Mallorca: Women's Sprint Enduro */
 "lGbrvMQBgzM", /* Super League Championship Finale - Women's Enduro Full Race */
 "b5kHoPWa-Go", /* Women's Jersey Triple Mix Jersey 2018 FULL */
+"tAO476mgVho", /* RBC Super League Triathlon Jersey: Women's Semi-Final B */
+"0pfZ5Pvwuko"  /* RBC Super League Triathlon Jersey: Women's Semi-Final A */
+]
+
+/* A list of hippo facts */
+var HIPPO_FACT = [
+"Hippos are considered the second largest land animal on Earth.",
+"Hippos spend most of their day in rivers and lakes.",
+"Hippos are most active at night, when they forage for food.",
+"Hippos can hold their breath for up to five minutes underwater.",
+"Hippos usually live in herds of 10 to 20, led by a dominant male.",
+"Female hippos give birth every two years, usually to a single calf.",
+"In the wild hippos live for around 40 years.",
+"Hippos can run faster than humans - up to 30 miles per hour.",
+"Adult hippos move at speeds up to 8 km/h (5 mph) in water."
+]
+
+var HIPPO_IMG_LIST = [
+"6/6d/Hippopotamus_amphibius_-San_Diego_Zoo%2C_California%2C_USA_-under_water-8a.jpg",
+"2/2d/Hippopotame_%28Zoo_de_Berlin%29_%286081008830%29.jpg",
+"5/5e/Hippo_pod.jpg",
+"6/6c/Hippopotamus_amphibius_-_Homosassa_Springs_Wildlife_State_Park%2C_Florida_-_2010-01-13.jpg",
+"8/80/Hippopotamus_amphibius_in_Lake_Chamo_05.jpg",
+"f/fa/Hippopotamus_in_San_Diego_Zoo.jpg",
+"a/af/Hroch_obojzivelny.jpg",
+"8/8b/Hippopotamus_amphibius_Whipsnade_Zoo.jpg",
+"6/6f/Hippopotamus_amphibius_in_Tanzania_2830_Nevit.jpg",
+"2/2d/Hippopotame_%28Zoo_de_Berlin%29_%286081008830%29.jpg",
+"e/e1/Hippopotamus-1.jpg",
+"0/07/Prazsky_hroch.jpg"
 ]
 
 /*
@@ -301,9 +334,13 @@ function countdown_callback() {
             /* if we the loop checkbox is not checked */
             if(!document.getElementById("loop-checkbox").checked) {
                 reset_button();
-                set_display_border(true)
+                set_display_border(true);
                 update_display(0,
-                               "You cannot win against a hippo in a triathlon!");
+                    HIPPO_FACT[Math.floor(Math.random() * HIPPO_FACT.length)]);
+                document.getElementById("finish-image").src =
+                    "https://upload.wikimedia.org/wikipedia/commons/" +
+                    HIPPO_IMG_LIST[Math.floor(Math.random() *
+                                    HIPPO_IMG_LIST.length)];
                 set_bg_color("seg-text", "yellow");
                 /* Reset the timer's state */
                 parse_input();
@@ -382,7 +419,8 @@ function reset_button() {
     set_element_display("progress-control-label", false);
     set_element_display("progress-control-container", false);
     parse_input();
-    document.title = "Countdown Timer"
+    document.title = "Countdown Timer";
+    load_random_video();
 }
 
 function progress_button_check() {
